@@ -8,3 +8,5 @@
 
 *Crucial: `Agents`, `Infrastructure`, and `Store` are strictly siblings and must NEVER depend on each other.*
 - **Security**: Authentication is required by default for all endpoints via a global fallback policy using Clerk JWTs.
+- **Configuration**: Always use strongly-typed configuration classes (`IOptions` pattern or `Get<T>`) rather than reading values by key directly from `IConfiguration`.
+- **Magic Strings**: Avoid using magic strings (values) directly in the code, especially if they are vendor-specific. Use constants or configurations instead.

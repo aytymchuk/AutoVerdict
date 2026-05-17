@@ -5,10 +5,13 @@ namespace AutoVerdikt.WebApi.Authentication.Clerk;
 
 public static class ClerkAuthenticationExtensions
 {
+    private const string AzpClaimType = "azp";
+    private const string UnauthorizedPartyErrorMessage = "Unauthorized party.";
     public static IServiceCollection AddClerkAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var clerkAuthority = configuration["Clerk:Authority"]!;
-        var authorizedParty = configuration["Clerk:AuthorizedParty"];
+        var clerkOptions = configuration.GetSection(ClerkOptions.SectionName).Get<ClerkOptions>() ?? new ClerkOptions();
+        var clerkAuthority = clerkOptions.Authority;
+        var authorizedParty = clerkOptions.AuthorizedParty;
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -43,10 +46,10 @@ public static class ClerkAuthenticationExtensions
                     {
                         OnTokenValidated = context =>
                         {
-                            var azp = context.Principal?.FindFirst("azp")?.Value;
+                            var azp = context.Principal?.FindFirst(AzpClaimType)?.Value;
                             if (azp is null || azp != authorizedParty)
                             {
-                                context.Fail("Unauthorized party.");
+                                context.Fail(UnauthorizedPartyErrorMessage);
                             }
                             return Task.CompletedTask;
                         }

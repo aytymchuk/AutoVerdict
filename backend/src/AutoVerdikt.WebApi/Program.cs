@@ -8,7 +8,8 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddClerkAuthentication(builder.Configuration);
 
-var authorizedParty = builder.Configuration["Clerk:AuthorizedParty"];
+var clerkOptions = builder.Configuration.GetSection(ClerkOptions.SectionName).Get<ClerkOptions>() ?? new ClerkOptions();
+var authorizedParty = clerkOptions.AuthorizedParty;
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
 {
     if (string.IsNullOrEmpty(authorizedParty) || authorizedParty == "*")

@@ -1,4 +1,4 @@
-.PHONY: run clean test-backend
+.PHONY: run clean test-backend up down
 
 run:
 	@bash scripts/run-local.sh
@@ -8,4 +8,10 @@ clean:
 
 test-backend:
 	@cd backend && dotnet test
+
+up:
+	docker compose up -d
+
+down:
+	docker compose down
 
