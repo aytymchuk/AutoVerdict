@@ -1,0 +1,9 @@
+# Backend Clean Architecture Restrictions
+
+- **Application**: The core. Must have **NO** dependencies on other projects.
+- **Agents**: Implements AI/LLM integrations. Depends **ONLY** on Application.
+- **Infrastructure**: Implements external services/APIs. Depends **ONLY** on Application.
+- **Store**: Implements database and persistence. Depends **ONLY** on Application.
+- **WebApi**: The composition root. Depends on all layers to wire up Dependency Injection.
+
+*Crucial: `Agents`, `Infrastructure`, and `Store` are strictly siblings and must NEVER depend on each other.*
