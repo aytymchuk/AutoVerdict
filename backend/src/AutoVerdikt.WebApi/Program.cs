@@ -1,10 +1,35 @@
+using AutoVerdikt.WebApi.Authentication.Clerk;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddClerkAuthentication(builder.Configuration);
+
+var authorizedParty = builder.Configuration["Clerk:AuthorizedParty"];
+builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
+{
+    if (string.IsNullOrEmpty(authorizedParty) || authorizedParty == "*")
+    {
+        p.AllowAnyOrigin()
+         .AllowAnyMethod()
+         .AllowAnyHeader();
+    }
+    else
+    {
+        p.WithOrigins(authorizedParty)
+         .AllowAnyMethod()
+         .AllowAnyHeader()
+         .AllowCredentials();
+    }
+}));
+
 var app = builder.Build();
+
+app.UseCors();
+app.UseClerkAuthentication();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -7,3 +7,4 @@
 - **WebApi**: The composition root. Depends on all layers to wire up Dependency Injection.
 
 *Crucial: `Agents`, `Infrastructure`, and `Store` are strictly siblings and must NEVER depend on each other.*
+- **Security**: Authentication is required by default for all endpoints via a global fallback policy using Clerk JWTs.
