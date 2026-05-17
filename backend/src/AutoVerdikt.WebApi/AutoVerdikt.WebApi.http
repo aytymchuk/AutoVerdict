@@ -1,0 +1,6 @@
+@AutoVerdikt.WebApi_HostAddress = http://localhost:5065
+
+GET {{AutoVerdikt.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

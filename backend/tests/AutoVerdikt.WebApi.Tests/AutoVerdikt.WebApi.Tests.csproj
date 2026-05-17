@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AutoVerdikt.WebApi\AutoVerdikt.WebApi.csproj" />
+  </ItemGroup>
+
+</Project>
