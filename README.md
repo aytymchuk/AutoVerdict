@@ -2,6 +2,22 @@
 
 [![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/aytymchuk/AutoVerdict?utm_source=oss&utm_medium=github&utm_campaign=aytymchuk%2FAutoVerdict&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
 
+## CI Status
+
+|  | Backend (.NET 10) | Frontend (React) |
+|---|---|---|
+| **Build & Tests** | [![Backend CI](https://github.com/aytymchuk/AutoVerdict/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/aytymchuk/AutoVerdict/actions/workflows/ci.yml) | [![Frontend CI](https://github.com/aytymchuk/AutoVerdict/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/aytymchuk/AutoVerdict/actions/workflows/ci.yml) |
+| **Coverage** | [![codecov dotnet](https://codecov.io/gh/aytymchuk/AutoVerdict/branch/main/graph/badge.svg?flag=dotnet)](https://codecov.io/gh/aytymchuk/AutoVerdict) | [![codecov react](https://codecov.io/gh/aytymchuk/AutoVerdict/branch/main/graph/badge.svg?flag=react)](https://codecov.io/gh/aytymchuk/AutoVerdict) |
+
+<!--
+## Deployment Status (add once environments are configured)
+
+|  | Backend (.NET 10) | Frontend (React) |
+|---|---|---|
+| **Staging** | ![Backend Staging](https://github.com/aytymchuk/AutoVerdict/actions/workflows/deploy-staging.yml/badge.svg) | ![Frontend Staging](https://github.com/aytymchuk/AutoVerdict/actions/workflows/deploy-frontend-staging.yml/badge.svg) |
+| **Production** | ![Backend Production](https://github.com/aytymchuk/AutoVerdict/actions/workflows/deploy-production.yml/badge.svg) | ![Frontend Production](https://github.com/aytymchuk/AutoVerdict/actions/workflows/deploy-frontend-production.yml/badge.svg) |
+-->
+
 AI investigator for used car buyers in Poland. Cross-verifies listing claims against CEPiK records, VIN databases, and user documents to surface fraud and hidden defects.
 
 ## Tech Stack

@@ -1,0 +1,306 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  NODE_ENV: test
+
+# ─────────────────────────────────────────────────────────────
+# JOB 1 — Path filter (always runs)
+# ─────────────────────────────────────────────────────────────
+jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+
+# ─────────────────────────────────────────────────────────────
+# JOB 2 — .NET CI
+# ─────────────────────────────────────────────────────────────
+  dotnet-ci:
+    name: Backend (.NET 10)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build (Release, warnings-as-errors)
+        run: dotnet build --no-restore --configuration Release -p:TreatWarningsAsErrors=true
+
+      - name: Build Docker image
+        working-directory: ${{ github.workspace }}
+        run: |
+          docker build \
+            --file backend/src/AutoVerdikt.WebApi/Dockerfile \
+            --tag autoverdikt-api:ci-${{ github.sha }} \
+            --no-cache \
+            backend/
+
+      - name: Run tests with coverage
+        continue-on-error: true
+        run: |
+          dotnet test \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage;Format=cobertura" \
+            --results-directory "${{ github.workspace }}/backend/TestResults" \
+            --logger "trx" \
+            --logger "console;verbosity=normal"
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: .NET Test Results
+          path: backend/TestResults/**/*.trx
+          reporter: dotnet-trx
+          fail-on-error: "true"
+          fail-on-empty: "true"
+
+      - name: Merge coverage reports
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        if: always()
+        with:
+          reports: backend/TestResults/**/coverage.cobertura.xml
+          targetdir: backend/TestResults/coverage-merged
+          reporttypes: "Cobertura;MarkdownSummaryGithub"
+
+      - name: Coverage summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        if: always()
+        with:
+          filename: backend/TestResults/coverage-merged/Cobertura.xml
+          badge: true
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: false
+          indicators: true
+          output: both
+          thresholds: "60 80"
+
+      - name: Post coverage comment to PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: always() && github.event_name == 'pull_request'
+        with:
+          header: dotnet-coverage
+          path: code-coverage-results.md
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: backend/TestResults/**/coverage.cobertura.xml
+          flags: dotnet
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dotnet-test-results
+          path: backend/TestResults/
+          retention-days: 14
+
+# ─────────────────────────────────────────────────────────────
+# JOB 3 — React CI
+# ─────────────────────────────────────────────────────────────
+  react-ci:
+    name: Frontend (React + Vite)
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (zero warnings)
+        run: npm run lint -- --max-warnings 0
+
+      - name: Type-check
+        run: npm run type-check
+
+      - name: Build
+        run: npm run build
+
+      - name: Build Docker image
+        working-directory: ${{ github.workspace }}
+        run: |
+          docker build \
+            --file frontend/Dockerfile \
+            --build-arg VITE_CLERK_PUBLISHABLE_KEY=pk_test_ci_placeholder \
+            --tag autoverdikt-web:ci-${{ github.sha }} \
+            --no-cache \
+            frontend/
+
+      - name: Run tests with coverage
+        continue-on-error: true
+        run: |
+          npx vitest run \
+            --reporter=verbose \
+            --reporter=junit \
+            --outputFile=./test-results/junit.xml \
+            --coverage \
+            --coverage.reporter=lcov \
+            --coverage.reporter=text \
+            --coverage.reporter=cobertura \
+            --coverage.reportsDirectory=./test-results/coverage
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: React Test Results
+          path: frontend/test-results/junit.xml
+          reporter: jest-junit
+          fail-on-error: "true"
+          fail-on-empty: "true"
+
+      - name: Coverage summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        if: always()
+        with:
+          filename: frontend/test-results/coverage/cobertura-coverage.xml
+          badge: true
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: false
+          indicators: true
+          output: both
+          thresholds: "60 80"
+
+      - name: Post coverage comment to PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: always() && github.event_name == 'pull_request'
+        with:
+          header: react-coverage
+          path: code-coverage-results.md
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: frontend/test-results/coverage/lcov.info
+          flags: react
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: react-test-results
+          path: frontend/test-results/
+          retention-days: 14
+
+# ─────────────────────────────────────────────────────────────
+# JOB 4 — Unified summary (always runs after both parallel jobs)
+# ─────────────────────────────────────────────────────────────
+  summary:
+    name: CI Summary
+    needs: [dotnet-ci, react-ci]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Write job summary
+        env:
+          DOTNET_RESULT: ${{ needs.dotnet-ci.result }}
+          REACT_RESULT: ${{ needs.react-ci.result }}
+          SHA: ${{ github.sha }}
+          BRANCH: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          # Map result to emoji
+          status_emoji() {
+            case "$1" in
+              success)  echo "✅ success" ;;
+              failure)  echo "❌ failure" ;;
+              skipped)  echo "⏭️ skipped" ;;
+              cancelled) echo "🚫 cancelled" ;;
+              *)        echo "❓ $1" ;;
+            esac
+          }
+
+          DOTNET_DISPLAY=$(status_emoji "$DOTNET_RESULT")
+          REACT_DISPLAY=$(status_emoji "$REACT_RESULT")
+
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## CI Results
+
+          | Application | Result |
+          |---|---|
+          | Backend (.NET 10) | $DOTNET_DISPLAY |
+          | Frontend (React) | $REACT_DISPLAY |
+
+          ---
+          **Commit:** \`${SHA:0:8}\` · **Branch:** \`$BRANCH\` · **Actor:** @$ACTOR
+          EOF
+
+          # Fail the pipeline only on actual failures (not skipped)
+          if [ "$DOTNET_RESULT" = "failure" ] || [ "$REACT_RESULT" = "failure" ]; then
+            echo "::error::One or more CI jobs failed."
+            exit 1
+          fi
