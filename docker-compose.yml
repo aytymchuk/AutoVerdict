@@ -1,0 +1,59 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: src/AutoVerdikt.WebApi/Dockerfile
+    ports:
+      - "5065:8080"
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - azurite
+      - seq
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_CLERK_PUBLISHABLE_KEY
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - api
+
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:-root}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-example}
+    volumes:
+      - mongodb_data:/data/db
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - azurite_data:/workspace
+
+  seq:
+    image: datalust/seq:2024.3
+    ports:
+      - "5341:80"
+    env_file:
+      - .env
+    volumes:
+      - seq_data:/data
+
+volumes:
+  mongodb_data:
+  azurite_data:
+  seq_data:

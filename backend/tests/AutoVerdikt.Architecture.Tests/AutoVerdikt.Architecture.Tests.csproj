@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AutoVerdikt.Application\AutoVerdikt.Application.csproj" />
+    <ProjectReference Include="..\..\src\AutoVerdikt.Infrastructure\AutoVerdikt.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\AutoVerdikt.Store\AutoVerdikt.Store.csproj" />
+    <ProjectReference Include="..\..\src\AutoVerdikt.WebApi\AutoVerdikt.WebApi.csproj" />
+    <ProjectReference Include="..\..\src\AutoVerdikt.Agents\AutoVerdikt.Agents.csproj" />
+  </ItemGroup>
+
+</Project>
