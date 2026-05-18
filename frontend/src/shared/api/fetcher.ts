@@ -23,7 +23,12 @@ export function useApi() {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      return response.json();
+      if (response.status === 204 || response.status === 205) {
+        return null;
+      }
+
+      const text = await response.text();
+      return text ? JSON.parse(text) : null;
     },
     [getToken]
   );

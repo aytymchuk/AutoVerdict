@@ -3,9 +3,11 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
-COPY package.json package-lock.json* npm-shrinkwrap.json* ./
-# Use npm ci if lockfile exists, else npm install
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# Install pnpm globally
+RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
@@ -14,7 +16,7 @@ ARG VITE_CLERK_PUBLISHABLE_KEY
 ENV VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # Production Stage
 FROM node:22-alpine AS production
@@ -38,4 +40,4 @@ USER nodejs
 EXPOSE 3000
 
 # Start the static server
-CMD ["npx", "serve", "-s", "dist", "-l", "3000"]
+CMD ["serve", "-s", "dist", "-l", "3000"]

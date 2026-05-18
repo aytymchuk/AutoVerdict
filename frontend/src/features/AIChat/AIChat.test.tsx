@@ -18,32 +18,30 @@ describe('AIChat', () => {
     vi.clearAllMocks();
   });
 
-  it('shows loading state initially while token is unresolved', async () => {
-    let resolveToken: (value: string) => void = () => {};
-    const tokenPromise = new Promise<string>((resolve) => {
-      resolveToken = resolve;
-    });
-    mockGetToken.mockReturnValue(tokenPromise);
-
-    render(<AIChat />);
-
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-
-    // Resolve the token to clean up
-    await act(async () => {
-      resolveToken('test-token-xyz');
-    });
-  });
-
-  it('renders token when successfully fetched', async () => {
+  it('calls getToken on mount to fetch authentication token', async () => {
     mockGetToken.mockResolvedValue('mocked-clerk-token-123');
 
     await act(async () => {
       render(<AIChat />);
     });
 
-    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-    expect(screen.getByText('mocked-clerk-token-123')).toBeInTheDocument();
+    expect(mockGetToken).toHaveBeenCalled();
+  });
+
+  it('handles getToken rejection gracefully', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockGetToken.mockRejectedValue(new Error('Auth failed'));
+
+    await act(async () => {
+      render(<AIChat />);
+    });
+
+    expect(mockGetToken).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Failed to retrieve Clerk authentication token:',
+      expect.any(Error)
+    );
+    consoleSpy.mockRestore();
   });
 
   it('renders chat input and send button', async () => {

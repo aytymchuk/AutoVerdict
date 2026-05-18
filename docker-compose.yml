@@ -26,9 +26,12 @@ services:
       - api
 
   mongodb:
-    image: mongo:latest
+    image: mongo:7.0
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:-root}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-example}
     volumes:
       - mongodb_data:/data/db
 
@@ -42,7 +45,7 @@ services:
       - azurite_data:/workspace
 
   seq:
-    image: datalust/seq:latest
+    image: datalust/seq:2024.3
     ports:
       - "5341:80"
     env_file:

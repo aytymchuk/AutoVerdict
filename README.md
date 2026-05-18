@@ -32,7 +32,7 @@ AI investigator for used car buyers in Poland. Cross-verifies listing claims aga
 
 ## Repository Structure
 
-```
+```text
 AutoVerdikt/
 ├── frontend/        React 19 SPA — Feature-Sliced Design architecture
 ├── backend/
@@ -86,7 +86,7 @@ make up
 
 **Frontend** (Vite dev server with HMR):
 ```bash
-cd frontend && npm run dev
+cd frontend && pnpm dev
 ```
 
 **Backend** (.NET hot reload):
@@ -94,7 +94,7 @@ cd frontend && npm run dev
 cd backend && dotnet run --project src/AutoVerdikt.WebApi
 ```
 
-> When running the backend locally against `npm run dev`, set `Clerk__AuthorizedParty=http://localhost:5173` in your shell or `.env`.
+> When running the backend locally against `pnpm dev`, set `Clerk__AuthorizedParty=http://localhost:5173` in your shell or `.env`.
 
 ## Development Commands
 
@@ -113,7 +113,7 @@ make test-backend    # Run all backend test projects
 cd backend && dotnet test
 
 # Frontend — lint
-cd frontend && npm run lint
+cd frontend && pnpm lint
 ```
 
 ## Environment Variables

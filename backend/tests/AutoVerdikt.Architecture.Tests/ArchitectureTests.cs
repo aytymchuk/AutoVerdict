@@ -68,4 +68,18 @@ public class ArchitectureTests
 
         result.IsSuccessful.ShouldBeTrue();
     }
+
+    [Fact]
+    public void WebApi_Should_Not_HaveDependencyOn_Store_Or_Agents()
+    {
+        var webApiAssembly = Assembly.Load(WebApiNamespace);
+
+        var result = Types
+            .InAssembly(webApiAssembly)
+            .ShouldNot()
+            .HaveDependencyOnAny(StoreNamespace, AgentsNamespace)
+            .GetResult();
+
+        result.IsSuccessful.ShouldBeTrue();
+    }
 }

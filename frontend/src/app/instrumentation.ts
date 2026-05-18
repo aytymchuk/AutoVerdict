@@ -3,10 +3,13 @@ import { BatchSpanProcessor, ConsoleSpanExporter } from '@opentelemetry/sdk-trac
 import { getWebAutoInstrumentations } from '@opentelemetry/auto-instrumentations-web';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 
+const spanProcessors = [];
+if (import.meta.env.DEV) {
+  spanProcessors.push(new BatchSpanProcessor(new ConsoleSpanExporter()));
+}
+
 const provider = new WebTracerProvider({
-  spanProcessors: [
-    new BatchSpanProcessor(new ConsoleSpanExporter())
-  ]
+  spanProcessors
 });
 
 provider.register();

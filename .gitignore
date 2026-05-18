@@ -68,7 +68,6 @@ frontend/dist/
 backend/**/bin/
 backend/**/obj/
 backend/**/.vs/
-**/appsettings.Development.json
 
 # Infrastructure & Tooling
 landing/node_modules/

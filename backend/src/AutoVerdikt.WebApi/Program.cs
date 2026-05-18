@@ -10,9 +10,19 @@ builder.Services.AddClerkAuthentication(builder.Configuration);
 
 var clerkOptions = builder.Configuration.GetSection(ClerkOptions.SectionName).Get<ClerkOptions>() ?? new ClerkOptions();
 var authorizedParty = clerkOptions.AuthorizedParty;
+
+if (!builder.Environment.IsDevelopment())
+{
+    ArgumentException.ThrowIfNullOrEmpty(authorizedParty);
+    if (authorizedParty == "*")
+    {
+        throw new InvalidOperationException("AuthorizedParty is wildcard '*' in production, which is not permitted.");
+    }
+}
+
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
 {
-    if (string.IsNullOrEmpty(authorizedParty) || authorizedParty == "*")
+    if (builder.Environment.IsDevelopment() && (string.IsNullOrEmpty(authorizedParty) || authorizedParty == "*"))
     {
         p.AllowAnyOrigin()
          .AllowAnyMethod()
@@ -20,7 +30,7 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     }
     else
     {
-        p.WithOrigins(authorizedParty)
+        p.WithOrigins(authorizedParty!)
          .AllowAnyMethod()
          .AllowAnyHeader()
          .AllowCredentials();
@@ -29,6 +39,7 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
 
 var app = builder.Build();
 
+app.UseHttpsRedirection();
 app.UseCors();
 app.UseClerkAuthentication();
 
@@ -37,8 +48,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseHttpsRedirection();
 
 var summaries = new[]
 {

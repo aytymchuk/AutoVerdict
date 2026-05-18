@@ -173,24 +173,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Setup Node.js (LTS)
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Lint (zero warnings)
-        run: npm run lint -- --max-warnings 0
+        run: pnpm lint --max-warnings 0
 
       - name: Type-check
-        run: npm run type-check
+        run: pnpm type-check
 
       - name: Build
-        run: npm run build
+        run: pnpm build
 
       - name: Build Docker image
         working-directory: ${{ github.workspace }}
@@ -205,7 +210,7 @@ jobs:
       - name: Run tests with coverage
         continue-on-error: true
         run: |
-          npx vitest run \
+          pnpm vitest run \
             --reporter=verbose \
             --reporter=junit \
             --outputFile=./test-results/junit.xml \

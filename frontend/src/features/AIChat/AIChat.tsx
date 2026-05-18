@@ -1,20 +1,24 @@
 import { useAuth } from '@clerk/clerk-react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 export function AIChat() {
   const { getToken } = useAuth();
-  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    getToken().then(setToken);
+    let isMounted = true;
+    getToken()
+      .catch((err) => {
+        if (isMounted) {
+          console.error("Failed to retrieve Clerk authentication token:", err);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
   }, [getToken]);
 
   return (
     <div className="flex flex-col h-[600px] border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-      <div className="p-4 bg-yellow-50 border-b border-yellow-200 text-xs break-all text-yellow-800">
-        <span className="font-semibold block mb-1">Auth Token:</span>
-        {token || 'Loading...'}
-      </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Chat UI will be implemented here */}
       </div>

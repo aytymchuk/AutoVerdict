@@ -17,12 +17,11 @@ AutoVerdikt is an AI investigator for used car buyers in Poland. It cross-verifi
 3. **Secrets:** Never hardcode keys. Use `.env.local` for local development and Azure Key Vault for production.
 
 ## Local Development Stack
-- **Frontend:** Run `cd frontend && npm run dev` (Vite dev server).
+- **Frontend:** Run `cd frontend && pnpm dev` (Vite dev server).
 - **Backend:** Run `cd backend && dotnet run` (.NET 10 Minimal API).
 - **Databases:** MongoDB, Azurite, Seq are pre-configured in `docker-compose.yml`. Use `docker-compose up -d` to start the local stack.
 
 ## Tooling Reference
-- **Code Formatting:** Run `pnpm format` in the root to format all workspaces.
-- **Linting:** Run `pnpm lint` to enforce code quality.
-- **Security:** Run `pnpm audit` for vulnerability scanning.
-- **Builds:** Run `pnpm build` to build all workspaces.
+- **Code Formatting & Linting:** Run `pnpm lint` in the `frontend/` directory to lint and format code.
+- **Testing:** Run `dotnet test` in `backend/` for backend verification, and `pnpm test` in `frontend/` for frontend testing.
+- **Builds:** Run `dotnet build` in `backend/` and `pnpm build` in `frontend/` to compile the respective projects.

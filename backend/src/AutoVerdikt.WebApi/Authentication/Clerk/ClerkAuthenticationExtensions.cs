@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -11,6 +12,7 @@ public static class ClerkAuthenticationExtensions
     {
         var clerkOptions = configuration.GetSection(ClerkOptions.SectionName).Get<ClerkOptions>() ?? new ClerkOptions();
         var clerkAuthority = clerkOptions.Authority;
+        ArgumentException.ThrowIfNullOrEmpty(clerkAuthority);
         var authorizedParty = clerkOptions.AuthorizedParty;
 
         services
@@ -40,7 +42,7 @@ public static class ClerkAuthenticationExtensions
                 };
 
                 // Validate the azp claim (authorized party = your frontend origin)
-                if (!string.IsNullOrEmpty(authorizedParty))
+                if (!string.IsNullOrEmpty(authorizedParty) && authorizedParty != "*")
                 {
                     options.Events = new JwtBearerEvents
                     {
@@ -57,12 +59,10 @@ public static class ClerkAuthenticationExtensions
                 }
             });
 
-        services.AddAuthorization(options =>
-        {
-            options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        services.AddAuthorizationBuilder()
+            .SetFallbackPolicy(new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
-                .Build();
-        });
+                .Build());
         
         return services;
     }
