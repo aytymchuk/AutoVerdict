@@ -1,8 +1,10 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useEffect } from 'react';
+import { useTranslation } from '../../shared/lib/i18n';
 
 export function AIChat() {
   const { getToken } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     let isMounted = true;
@@ -28,14 +30,14 @@ export function AIChat() {
         className="p-4 border-t border-gray-200 bg-gray-50 flex gap-2"
       >
         <input
-          placeholder="Ask AutoVerdikt..."
+          placeholder={t('chatPlaceholder')}
           className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
         >
-          Send
+          {t('send')}
         </button>
       </form>
     </div>

@@ -112,8 +112,8 @@ make test-backend    # Run all backend test projects
 # Backend — all layers
 cd backend && dotnet test
 
-# Frontend — lint
-cd frontend && pnpm lint
+# Frontend — lint & test
+cd frontend && pnpm lint && pnpm test
 ```
 
 ## Environment Variables

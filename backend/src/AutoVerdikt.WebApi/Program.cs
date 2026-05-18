@@ -39,7 +39,10 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors();
 app.UseClerkAuthentication();
 
