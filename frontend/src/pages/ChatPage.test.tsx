@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ChatPage } from './ChatPage';
-import React from 'react';
 import '@testing-library/jest-dom';
 
 // Mock Clerk components

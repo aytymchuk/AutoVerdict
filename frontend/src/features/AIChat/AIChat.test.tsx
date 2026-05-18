@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { AIChat } from './AIChat';
-import React from 'react';
 import '@testing-library/jest-dom';
 
 const mockGetToken = vi.fn();
