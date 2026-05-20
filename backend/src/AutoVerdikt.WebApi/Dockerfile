@@ -32,5 +32,7 @@ RUN dotnet publish "./AutoVerdikt.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app
 
 FROM base AS final
 WORKDIR /app
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "AutoVerdikt.WebApi.dll"]
