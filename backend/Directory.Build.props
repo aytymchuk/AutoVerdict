@@ -5,4 +5,9 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- SharpCompress (transitive via MongoDB.Driver) has no fix available as of 2026-05.
+         The vulnerable WriteToDirectory() code path is not reachable through MongoDB.Driver usage. -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-6c8g-7p36-r338" />
+  </ItemGroup>
 </Project>

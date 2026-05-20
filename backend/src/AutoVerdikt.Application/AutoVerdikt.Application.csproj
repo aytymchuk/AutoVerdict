@@ -1,5 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <PackageReference Include="FluentResults" />
+    <PackageReference Include="Mediator.Abstractions" />
+  </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AutoVerdikt.Domain\AutoVerdikt.Domain.csproj" />
+  </ItemGroup>
 
 </Project>

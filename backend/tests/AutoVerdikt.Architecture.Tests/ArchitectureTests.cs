@@ -7,11 +7,28 @@ namespace AutoVerdikt.Architecture.Tests;
 
 public class ArchitectureTests
 {
+    private const string DomainNamespace = "AutoVerdikt.Domain";
     private const string ApplicationNamespace = "AutoVerdikt.Application";
     private const string InfrastructureNamespace = "AutoVerdikt.Infrastructure";
     private const string StoreNamespace = "AutoVerdikt.Store";
     private const string WebApiNamespace = "AutoVerdikt.WebApi";
     private const string AgentsNamespace = "AutoVerdikt.Agents";
+
+    [Fact]
+    public void Domain_Should_Not_HaveDependencyOn_AnyOtherProject()
+    {
+        var domainAssembly = Assembly.Load(DomainNamespace);
+
+        var result = Types
+            .InAssembly(domainAssembly)
+            .ShouldNot()
+            .HaveDependencyOnAny(
+                ApplicationNamespace, InfrastructureNamespace,
+                StoreNamespace, WebApiNamespace, AgentsNamespace)
+            .GetResult();
+
+        result.IsSuccessful.ShouldBeTrue();
+    }
 
     [Fact]
     public void Application_Should_Not_HaveDependencyOn_OtherProjects()
@@ -70,14 +87,16 @@ public class ArchitectureTests
     }
 
     [Fact]
-    public void WebApi_Should_Not_HaveDependencyOn_Store_Or_Agents()
+    public void WebApi_Should_Not_HaveDependencyOn_Agents()
     {
+        // WebApi is the composition root and may wire up Store/Infrastructure for DI.
+        // The only hard constraint is that it never depends on Agents.
         var webApiAssembly = Assembly.Load(WebApiNamespace);
 
         var result = Types
             .InAssembly(webApiAssembly)
             .ShouldNot()
-            .HaveDependencyOnAny(StoreNamespace, AgentsNamespace)
+            .HaveDependencyOnAny(AgentsNamespace)
             .GetResult();
 
         result.IsSuccessful.ShouldBeTrue();

@@ -1,0 +1,24 @@
+using FluentResults;
+using Mediator;
+using AutoVerdikt.Application.Abstractions;
+using AutoVerdikt.Domain.Users;
+
+namespace AutoVerdikt.Application.Users.Register;
+
+public sealed class UserRegisterCommandHandler(
+    IUserRepository repository,
+    ICurrentUserContext currentUser,
+    TimeProvider timeProvider)
+    : IRequestHandler<UserRegisterCommand, Result<UserAccount>>
+{
+    public async ValueTask<Result<UserAccount>> Handle(
+        UserRegisterCommand command, CancellationToken cancellationToken)
+    {
+        if (await repository.ExistsByClerkIdAsync(currentUser.ClerkId, cancellationToken))
+            return Result.Fail("User is already registered.");
+
+        var user = UserAccount.Create(currentUser.ClerkId, command.Name, command.Email, timeProvider);
+        await repository.CreateAsync(user, cancellationToken);
+        return Result.Ok(user);
+    }
+}
