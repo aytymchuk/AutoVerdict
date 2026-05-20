@@ -11,6 +11,12 @@ services:
       - mongodb
       - azurite
       - seq
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
 
   web:
     build:
@@ -23,7 +29,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   mongodb:
     image: mongo:7.0

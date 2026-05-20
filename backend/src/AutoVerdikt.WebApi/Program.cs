@@ -1,4 +1,5 @@
 using AutoVerdikt.WebApi.Authentication.Clerk;
+using AutoVerdikt.WebApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,10 @@ var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
+
+app.MapGet(HealthEndpoint.Route, () => Results.Ok(new { status = HealthEndpoint.Status }))
+    .AllowAnonymous()
+    .WithName(HealthEndpoint.Name);
 
 app.MapGet("/weatherforecast", () =>
 {
