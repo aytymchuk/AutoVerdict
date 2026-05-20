@@ -32,6 +32,9 @@ RUN dotnet publish "./AutoVerdikt.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app
 
 FROM base AS final
 WORKDIR /app
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+USER $APP_UID
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
 COPY --from=publish /app/publish .
