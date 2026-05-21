@@ -13,7 +13,17 @@ internal static class UserEndpoints
             {
                 var result = await mediator.Send(new UserRegisterCommand(dto.Name, dto.Email), ct);
                 if (result.IsFailed)
+                {
+                    var duplicateError = result.Errors.FirstOrDefault(e =>
+                        (e.Metadata.TryGetValue("ErrorCode", out var code) && code?.ToString() == "DuplicateUser") ||
+                        e.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase) ||
+                        e.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase));
+
+                    if (duplicateError != null)
+                        return Results.Conflict(new { error = duplicateError.Message });
+
                     return Results.BadRequest(result.Errors.Select(e => e.Message));
+                }
                 var u = result.Value;
                 return Results.Created(
                     $"{UserEndpointConstants.RegisterRoute}/{u.Id}",
