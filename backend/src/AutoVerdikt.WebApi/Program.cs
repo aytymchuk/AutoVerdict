@@ -3,6 +3,8 @@ using AutoVerdikt.Store;
 using AutoVerdikt.WebApi.Authentication.Clerk;
 using AutoVerdikt.WebApi.Endpoints;
 using AutoVerdikt.WebApi.Endpoints.Users;
+using FluentValidation;
+using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +46,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserContext, ClerkUserContext>();
 builder.Services.AddMediator();
 builder.Services.AddStore(builder.Configuration);
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddFluentValidationAutoValidation();
 
 var app = builder.Build();
 
