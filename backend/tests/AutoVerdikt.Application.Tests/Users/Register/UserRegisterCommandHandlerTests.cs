@@ -1,7 +1,9 @@
 using AutoVerdikt.Application.Abstractions;
 using AutoVerdikt.Application.Users;
+using AutoVerdikt.Application.Users.Errors;
 using AutoVerdikt.Application.Users.Register;
 using AutoVerdikt.Domain.Users;
+using FluentResults;
 using Moq;
 using Shouldly;
 
@@ -24,7 +26,7 @@ public class UserRegisterCommandHandlerTests
             .ReturnsAsync(false);
         _repository
             .Setup(r => r.CreateAsync(It.IsAny<UserAccount>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Result.Ok());
 
         var result = await CreateHandler().Handle(
             new UserRegisterCommand("Alice", "alice@example.com"), CancellationToken.None);
@@ -45,7 +47,7 @@ public class UserRegisterCommandHandlerTests
             .ReturnsAsync(false);
         _repository
             .Setup(r => r.CreateAsync(It.IsAny<UserAccount>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Result.Ok());
 
         await CreateHandler().Handle(
             new UserRegisterCommand("Alice", "alice@example.com"), CancellationToken.None);
@@ -56,7 +58,7 @@ public class UserRegisterCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_AlreadyRegistered_ReturnsFailWithMessage()
+    public async Task Handle_AlreadyRegistered_ReturnsUserAlreadyRegisteredError()
     {
         _currentUser.Setup(c => c.AuthId).Returns("auth_abc123");
         _repository
@@ -68,6 +70,7 @@ public class UserRegisterCommandHandlerTests
 
         result.IsFailed.ShouldBeTrue();
         result.Errors.Count.ShouldBe(1);
+        result.Errors[0].ShouldBeOfType<UserAlreadyRegisteredError>();
         result.Errors[0].Message.ShouldBe("User is already registered.");
     }
 
@@ -85,5 +88,23 @@ public class UserRegisterCommandHandlerTests
         _repository.Verify(
             r => r.CreateAsync(It.IsAny<UserAccount>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_RaceConditionDuplicate_ReturnsUserAlreadyRegisteredError()
+    {
+        _currentUser.Setup(c => c.AuthId).Returns("auth_abc123");
+        _repository
+            .Setup(r => r.ExistsByAuthIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _repository
+            .Setup(r => r.CreateAsync(It.IsAny<UserAccount>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Fail(new UserAlreadyRegisteredError()));
+
+        var result = await CreateHandler().Handle(
+            new UserRegisterCommand("Alice", "alice@example.com"), CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        result.Errors[0].ShouldBeOfType<UserAlreadyRegisteredError>();
     }
 }

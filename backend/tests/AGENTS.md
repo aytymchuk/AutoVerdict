@@ -8,3 +8,4 @@
 5. **Format**: Follow standard Arrange/Act/Assert xUnit patterns with semantic naming.
 6. **Assertions**: All tests **MUST** use the `Shouldly` library for assertions (e.g., `result.ShouldBeTrue()`), rather than standard xUnit assertions.
 7. **FluentValidation Tests**: When testing `AbstractValidator<T>` subclasses, use the `FluentValidation.TestHelper` API: `validator.TestValidate(model)` returns a `TestValidationResult`; assert with `.ShouldHaveValidationErrorFor(x => x.Property).WithErrorMessage("...")` and `.ShouldNotHaveAnyValidationErrors()`. These are the canonical assertions for validator unit tests and take precedence over Shouldly for validation-specific checks.
+8. **Error type assertions**: When a handler or service returns `Result.Fail(...)`, assert both the failure state and the concrete `Error` subtype using `result.Errors[0].ShouldBeOfType<SomeError>()`. This verifies the correct typed error is returned, not just any failure message.

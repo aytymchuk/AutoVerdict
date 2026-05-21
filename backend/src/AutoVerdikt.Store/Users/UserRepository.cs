@@ -1,4 +1,6 @@
+using FluentResults;
 using AutoVerdikt.Application.Users;
+using AutoVerdikt.Application.Users.Errors;
 using AutoVerdikt.Domain.Users;
 using MongoDB.Driver;
 
@@ -12,7 +14,7 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
         return await collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken) > 0;
     }
 
-    public async Task CreateAsync(UserAccount user, CancellationToken cancellationToken = default)
+    public async Task<Result> CreateAsync(UserAccount user, CancellationToken cancellationToken = default)
     {
         var document = new UserDocument
         {
@@ -25,10 +27,11 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
         try
         {
             await collection.InsertOneAsync(document, cancellationToken: cancellationToken);
+            return Result.Ok();
         }
         catch (MongoWriteException ex) when (ex.WriteError.Code == 11000)
         {
-            throw new DuplicateUserException();
+            return Result.Fail(new UserAlreadyRegisteredError());
         }
     }
 }
