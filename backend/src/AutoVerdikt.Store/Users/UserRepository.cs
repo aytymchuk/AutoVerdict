@@ -6,9 +6,9 @@ namespace AutoVerdikt.Store.Users;
 
 internal sealed class UserRepository(IMongoCollection<UserDocument> collection) : IUserRepository
 {
-    public async Task<bool> ExistsByAuthIdAsync(string clerkId, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsByAuthIdAsync(string authId, CancellationToken cancellationToken = default)
     {
-        var filter = Builders<UserDocument>.Filter.Eq(u => u.AuthId, clerkId);
+        var filter = Builders<UserDocument>.Filter.Eq(u => u.AuthId, authId);
         return await collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken) > 0;
     }
 
@@ -22,6 +22,13 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
             Email = user.Email,
             RegisteredAt = user.RegisteredAt.UtcDateTime
         };
-        await collection.InsertOneAsync(document, cancellationToken: cancellationToken);
+        try
+        {
+            await collection.InsertOneAsync(document, cancellationToken: cancellationToken);
+        }
+        catch (MongoWriteException ex) when (ex.WriteError.Code == 11000)
+        {
+            throw new DuplicateUserException();
+        }
     }
 }

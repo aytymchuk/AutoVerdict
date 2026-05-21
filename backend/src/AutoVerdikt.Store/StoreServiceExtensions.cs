@@ -12,7 +12,13 @@ public static class StoreServiceExtensions
 {
     public static IServiceCollection AddStore(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<MongoDbOptions>(configuration.GetSection(MongoDbOptions.SectionName));
+        services.AddOptions<MongoDbOptions>()
+            .Bind(configuration.GetSection(MongoDbOptions.SectionName))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.ConnectionString),
+                "MongoDb:ConnectionString is required.")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.DatabaseName),
+                "MongoDb:DatabaseName is required.")
+            .ValidateOnStart();
 
         services.AddSingleton<IMongoClient>(sp =>
         {

@@ -11,14 +11,23 @@ public sealed class UserRegisterCommandHandler(
     TimeProvider timeProvider)
     : IRequestHandler<UserRegisterCommand, Result<UserAccount>>
 {
+    private const string AlreadyRegisteredMessage = "User is already registered.";
+
     public async ValueTask<Result<UserAccount>> Handle(
         UserRegisterCommand command, CancellationToken cancellationToken)
     {
         if (await repository.ExistsByAuthIdAsync(currentUser.AuthId, cancellationToken))
-            return Result.Fail("User is already registered.");
+            return Result.Fail(AlreadyRegisteredMessage);
 
         var user = UserAccount.Create(currentUser.AuthId, command.Name, command.Email, timeProvider);
-        await repository.CreateAsync(user, cancellationToken);
+        try
+        {
+            await repository.CreateAsync(user, cancellationToken);
+        }
+        catch (DuplicateUserException ex)
+        {
+            return Result.Fail(ex.Message);
+        }
         return Result.Ok(user);
     }
 }
