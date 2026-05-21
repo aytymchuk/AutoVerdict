@@ -1,4 +1,4 @@
 namespace AutoVerdikt.WebApi.Endpoints.Users;
 
-// ClerkId intentionally omitted — not exposed to API consumers
+// AuthId intentionally omitted — not exposed to API consumers
 public sealed record UserAccountDto(Guid Id, string Name, string Email, DateTimeOffset RegisteredAt);

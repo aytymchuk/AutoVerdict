@@ -14,10 +14,10 @@ public sealed class UserRegisterCommandHandler(
     public async ValueTask<Result<UserAccount>> Handle(
         UserRegisterCommand command, CancellationToken cancellationToken)
     {
-        if (await repository.ExistsByClerkIdAsync(currentUser.ClerkId, cancellationToken))
+        if (await repository.ExistsByAuthIdAsync(currentUser.AuthId, cancellationToken))
             return Result.Fail("User is already registered.");
 
-        var user = UserAccount.Create(currentUser.ClerkId, command.Name, command.Email, timeProvider);
+        var user = UserAccount.Create(currentUser.AuthId, command.Name, command.Email, timeProvider);
         await repository.CreateAsync(user, cancellationToken);
         return Result.Ok(user);
     }

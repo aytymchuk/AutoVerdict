@@ -16,7 +16,7 @@ internal sealed class MongoDbInitializer(IMongoCollection<UserDocument> users) :
 
         await users.Indexes.CreateOneAsync(
             new CreateIndexModel<UserDocument>(
-                Builders<UserDocument>.IndexKeys.Ascending(u => u.ClerkId),
+                Builders<UserDocument>.IndexKeys.Ascending(u => u.AuthId),
                 new CreateIndexOptions { Unique = true }),
             cancellationToken: cancellationToken);
     }

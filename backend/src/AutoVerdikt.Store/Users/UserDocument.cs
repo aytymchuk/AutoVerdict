@@ -9,8 +9,8 @@ internal sealed class UserDocument
     [BsonRepresentation(BsonType.String)]
     public Guid Id { get; init; }
 
-    [BsonElement("clerkId")]
-    public string ClerkId { get; init; } = string.Empty;
+    [BsonElement("authId")]
+    public string AuthId { get; init; } = string.Empty;
 
     [BsonElement("name")]
     public string Name { get; init; } = string.Empty;

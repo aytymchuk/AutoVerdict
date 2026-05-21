@@ -6,9 +6,9 @@ namespace AutoVerdikt.Store.Users;
 
 internal sealed class UserRepository(IMongoCollection<UserDocument> collection) : IUserRepository
 {
-    public async Task<bool> ExistsByClerkIdAsync(string clerkId, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsByAuthIdAsync(string clerkId, CancellationToken cancellationToken = default)
     {
-        var filter = Builders<UserDocument>.Filter.Eq(u => u.ClerkId, clerkId);
+        var filter = Builders<UserDocument>.Filter.Eq(u => u.AuthId, clerkId);
         return await collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken) > 0;
     }
 
@@ -17,7 +17,7 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
         var document = new UserDocument
         {
             Id = user.Id,
-            ClerkId = user.ClerkId,
+            AuthId = user.AuthId,
             Name = user.Name,
             Email = user.Email,
             RegisteredAt = user.RegisteredAt.UtcDateTime
