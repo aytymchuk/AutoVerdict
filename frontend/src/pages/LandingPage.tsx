@@ -1,4 +1,16 @@
+import { useTranslation } from '../shared/lib/i18n';
+import type { Language } from '../shared/lib/i18n';
+
+const LANGUAGES: Language[] = ['en', 'pl', 'uk'];
+
 export function LandingPage() {
+  const { t, language, setLanguage } = useTranslation();
+
+  function cycleLanguage() {
+    const idx = LANGUAGES.indexOf(language);
+    setLanguage(LANGUAGES[(idx + 1) % LANGUAGES.length]);
+  }
+
   return (
     <div className="bg-surface-container-lowest text-text-primary antialiased selection:bg-primary-container selection:text-surface-container-lowest">
       {/* TopNavBar */}
@@ -9,26 +21,26 @@ export function LandingPage() {
               AutoVerdikt
             </a>
             <div className="hidden md:flex gap-lg">
-              <a
-                className="text-on-surface-variant hover:text-primary transition-colors text-[16px]"
-                href="#how-it-works"
-              >
-                How it works
+              <a className="text-on-surface-variant hover:text-primary transition-colors text-[16px]" href="#how-it-works">
+                {t('landing_nav_howItWorks')}
               </a>
             </div>
           </div>
           <div className="flex items-center gap-lg">
             <button
-              aria-label="Language"
-              className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center w-10 h-10 rounded-full"
+              aria-label="Switch language"
+              title={t('landing_footer_language')}
+              onClick={cycleLanguage}
+              className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center gap-1.5 px-3 h-10 rounded-full hover:bg-surface-container-highest text-[13px] font-medium"
             >
-              <span className="material-symbols-outlined">language</span>
+              <span className="material-symbols-outlined text-[20px]">language</span>
+              <span className="hidden sm:inline uppercase tracking-wider text-[11px]">{language}</span>
             </button>
             <a
               className="bg-primary-container text-surface-container-lowest text-[16px] font-bold py-3 px-6 rounded-full hover:bg-primary transition-all duration-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
               href="/auth"
             >
-              Join the whitelist →
+              {t('landing_nav_joinWhitelist')}
             </a>
           </div>
         </div>
@@ -40,15 +52,14 @@ export function LandingPage() {
           <div className="lg:col-span-7 flex flex-col gap-lg">
             <div>
               <span className="inline-block bg-surface-alt border border-border-subtle text-text-secondary font-[JetBrains_Mono] text-[12px] px-3 py-1 rounded-full mb-4">
-                In development · Launch Q3 2026
+                {t('landing_hero_badge')}
               </span>
               <h1 className="font-[Fraunces] text-[40px] lg:text-[64px] leading-[1.1] font-bold tracking-[-0.02em] text-on-surface">
-                Don't get fooled when buying a used car.
+                {t('landing_hero_headline')}
               </h1>
             </div>
             <p className="font-[DM_Sans] text-[20px] leading-[1.6] text-on-surface-variant max-w-2xl">
-              AutoVerdikt analyzes the listing, checks the history, and tells you what to watch out
-              for — before you pay.
+              {t('landing_hero_description')}
             </p>
             <div className="mt-md flex flex-col gap-4">
               <div className="flex flex-wrap gap-md">
@@ -56,19 +67,19 @@ export function LandingPage() {
                   className="inline-flex items-center justify-center bg-primary-container text-surface-container-lowest text-[16px] font-bold py-4 px-8 rounded-full hover:bg-primary transition-all duration-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
                   href="/auth"
                 >
-                  Join the whitelist →
+                  {t('landing_hero_cta_primary')}
                 </a>
                 <a
                   className="inline-flex items-center justify-center bg-transparent text-primary-container border border-primary-container text-[16px] font-bold py-4 px-8 rounded-full hover:bg-surface-container-highest transition-all duration-300"
                   href="#how-it-works"
                 >
-                  See how it works{' '}
+                  {t('landing_hero_cta_secondary')}{' '}
                   <span className="material-symbols-outlined ml-2 text-[20px]">arrow_forward</span>
                 </a>
               </div>
               <p className="text-[14px] text-text-secondary flex items-center gap-2">
                 <span className="text-[16px] text-primary-container">✦</span>
-                Takes 30 seconds to register · First 200 get bonus credits
+                {t('landing_hero_note')}
               </p>
             </div>
           </div>
@@ -83,7 +94,7 @@ export function LandingPage() {
                 <div className="flex justify-between items-start border-b border-border-subtle pb-md">
                   <div>
                     <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary uppercase tracking-widest mb-1">
-                      Listing Analysis
+                      {t('landing_mock_label')}
                     </div>
                     <h3 className="text-[20px] font-bold text-on-surface">Volkswagen Golf 2018</h3>
                     <div className="font-[JetBrains_Mono] text-[14px] text-on-surface-variant mt-1">
@@ -93,7 +104,7 @@ export function LandingPage() {
                   <div className="bg-risk-medium/15 text-risk-medium px-3 py-1.5 rounded-full flex items-center gap-2 border border-risk-medium/20">
                     <span className="material-symbols-outlined fill text-[16px]">warning</span>
                     <span className="font-[DM_Sans] text-[12px] uppercase tracking-[0.1em] font-bold">
-                      Medium Risk
+                      {t('landing_mock_risk_medium')}
                     </span>
                   </div>
                 </div>
@@ -110,10 +121,10 @@ export function LandingPage() {
                       </div>
                       <div>
                         <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary">
-                          Mileage
+                          {t('landing_mock_mileage_label')}
                         </div>
                         <div className="text-[14px] text-on-surface mt-1">
-                          Possible rollback (-40k km)
+                          {t('landing_mock_mileage_value')}
                         </div>
                       </div>
                     </div>
@@ -123,9 +134,11 @@ export function LandingPage() {
                       </div>
                       <div>
                         <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary">
-                          History
+                          {t('landing_mock_history_label')}
                         </div>
-                        <div className="text-[14px] text-on-surface mt-1">Total loss (USA)</div>
+                        <div className="text-[14px] text-on-surface mt-1">
+                          {t('landing_mock_history_value')}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -134,7 +147,7 @@ export function LandingPage() {
                 <div className="mt-2 pt-md border-t border-border-subtle flex justify-between items-center">
                   <div className="flex items-center gap-2 text-text-secondary font-[JetBrains_Mono] text-[12px]">
                     <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
-                    Processing data...
+                    {t('landing_mock_processing')}
                   </div>
                   <div className="font-[JetBrains_Mono] text-[14px] font-medium text-primary-container">
                     65%
@@ -150,11 +163,10 @@ export function LandingPage() {
           <div className="max-w-[1280px] mx-auto px-gutter">
             <div className="text-center mb-xl">
               <h2 className="font-[Fraunces] text-[48px] leading-[1.2] font-semibold text-on-surface">
-                How it works
+                {t('landing_hiw_title')}
               </h2>
               <p className="text-[20px] leading-[1.6] text-on-surface-variant mt-4 max-w-2xl mx-auto">
-                Get a complete picture of the risks associated with the selected vehicle in just
-                three steps.
+                {t('landing_hiw_description')}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-lg relative">
@@ -170,12 +182,9 @@ export function LandingPage() {
                   <span className="material-symbols-outlined text-[32px]">content_paste</span>
                 </div>
                 <h3 className="font-[Fraunces] text-[24px] font-semibold text-on-surface mb-2">
-                  1. Share the listing data
+                  {t('landing_hiw_step1_title')}
                 </h3>
-                <p className="text-[14px] text-on-surface-variant">
-                  Copy text from the listing or enter basic car details manually. You can also add
-                  photos or documents.
-                </p>
+                <p className="text-[14px] text-on-surface-variant">{t('landing_hiw_step1_desc')}</p>
               </div>
 
               {/* Step 2 */}
@@ -187,12 +196,9 @@ export function LandingPage() {
                   <span className="material-symbols-outlined text-[32px]">memory</span>
                 </div>
                 <h3 className="font-[Fraunces] text-[24px] font-semibold text-on-surface mb-2">
-                  2. AI analyzes in seconds
+                  {t('landing_hiw_step2_title')}
                 </h3>
-                <p className="text-[14px] text-on-surface-variant">
-                  We check the specs, assess the risk, and compare with the market. Your data is
-                  never stored.
-                </p>
+                <p className="text-[14px] text-on-surface-variant">{t('landing_hiw_step2_desc')}</p>
               </div>
 
               {/* Step 3 */}
@@ -204,12 +210,9 @@ export function LandingPage() {
                   <span className="material-symbols-outlined text-[32px]">analytics</span>
                 </div>
                 <h3 className="font-[Fraunces] text-[24px] font-semibold text-on-surface mb-2">
-                  3. Get a report and questions
+                  {t('landing_hiw_step3_title')}
                 </h3>
-                <p className="text-[14px] text-on-surface-variant">
-                  Risk rating, list of issues, and ready-made questions to ask the seller before you
-                  buy.
-                </p>
+                <p className="text-[14px] text-on-surface-variant">{t('landing_hiw_step3_desc')}</p>
               </div>
             </div>
           </div>
@@ -219,10 +222,10 @@ export function LandingPage() {
         <section className="max-w-[1280px] mx-auto px-gutter py-xxl border-b border-outline-variant/10">
           <div className="text-center mb-xl">
             <h2 className="font-[Fraunces] text-[48px] leading-[1.2] font-semibold text-on-surface">
-              Your data, your control
+              {t('landing_data_title')}
             </h2>
             <p className="text-[20px] leading-[1.6] text-on-surface-variant mt-4 max-w-2xl mx-auto">
-              Choose the method that works best for you. We handle the rest.
+              {t('landing_data_description')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
@@ -233,15 +236,13 @@ export function LandingPage() {
                   <span className="material-symbols-outlined text-[24px]">edit_document</span>
                 </div>
                 <span className="font-[DM_Sans] text-[10px] bg-surface-container-highest px-2 py-1 rounded text-text-secondary uppercase tracking-widest">
-                  Manual
+                  {t('landing_data_card1_badge')}
                 </span>
               </div>
               <h3 className="font-[Fraunces] text-[20px] font-semibold text-on-surface mb-2">
-                Enter manually
+                {t('landing_data_card1_title')}
               </h3>
-              <p className="text-[14px] text-on-surface-variant">
-                Type in the VIN and basic car details to run our core analysis engine.
-              </p>
+              <p className="text-[14px] text-on-surface-variant">{t('landing_data_card1_desc')}</p>
             </div>
 
             {/* Card 2 */}
@@ -251,15 +252,13 @@ export function LandingPage() {
                   <span className="material-symbols-outlined text-[24px]">content_copy</span>
                 </div>
                 <span className="font-[DM_Sans] text-[10px] bg-primary-container/20 text-primary-container px-2 py-1 rounded uppercase tracking-widest">
-                  Fast
+                  {t('landing_data_card2_badge')}
                 </span>
               </div>
               <h3 className="font-[Fraunces] text-[20px] font-semibold text-on-surface mb-2">
-                Paste the listing text
+                {t('landing_data_card2_title')}
               </h3>
-              <p className="text-[14px] text-on-surface-variant">
-                Copy the description from any marketplace. We extract the relevant details.
-              </p>
+              <p className="text-[14px] text-on-surface-variant">{t('landing_data_card2_desc')}</p>
             </div>
 
             {/* Card 3 */}
@@ -269,15 +268,13 @@ export function LandingPage() {
                   <span className="material-symbols-outlined text-[24px]">photo_camera</span>
                 </div>
                 <span className="font-[DM_Sans] text-[10px] bg-secondary-container/20 text-secondary-container px-2 py-1 rounded uppercase tracking-widest">
-                  Pro
+                  {t('landing_data_card3_badge')}
                 </span>
               </div>
               <h3 className="font-[Fraunces] text-[20px] font-semibold text-on-surface mb-2">
-                Add photos or documents
+                {t('landing_data_card3_title')}
               </h3>
-              <p className="text-[14px] text-on-surface-variant">
-                Upload images. Our AI extracts specs and flags hidden visual clues.
-              </p>
+              <p className="text-[14px] text-on-surface-variant">{t('landing_data_card3_desc')}</p>
             </div>
           </div>
         </section>
@@ -285,40 +282,40 @@ export function LandingPage() {
         {/* Features Bento */}
         <section className="max-w-[1280px] mx-auto px-gutter py-xxl">
           <h2 className="font-[Fraunces] text-[48px] leading-[1.2] font-semibold text-on-surface mb-xl text-center">
-            Tools for market advantage
+            {t('landing_features_title')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
             {/* Feature Card 1 — wide */}
             <div className="bg-surface p-lg rounded-xl border border-border-subtle inner-glow hover:bg-[#1A2030] hover:border-l-4 hover:border-l-primary-container transition-all duration-300 group flex flex-col lg:col-span-2 relative overflow-hidden">
               <div className="relative z-10">
                 <span className="font-[DM_Sans] text-[12px] text-primary-container tracking-widest uppercase mb-sm block">
-                  Risk Analysis
+                  {t('landing_features_card1_label')}
                 </span>
                 <h3 className="font-[Fraunces] text-[36px] leading-[1.3] font-semibold text-on-surface mb-md max-w-md">
-                  Risk rating
+                  {t('landing_features_card1_title')}
                 </h3>
                 <p className="text-[14px] text-on-surface-variant">
-                  Clear, data-backed assessment of the vehicle's risk profile based on history and
-                  specs.
+                  {t('landing_features_card1_desc')}
                 </p>
               </div>
               <div className="mt-xl grid grid-cols-2 gap-sm relative z-10">
                 <div className="bg-surface-alt border border-border-subtle p-sm rounded-lg">
                   <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary mb-xs">
-                    Accident History
+                    {t('landing_features_card1_tag1')}
                   </div>
                   <div className="flex items-center gap-xs">
                     <span className="bg-risk-high/15 text-risk-high px-2 py-1 rounded-full flex items-center text-xs font-bold gap-1 border border-risk-high/20">
-                      <span className="material-symbols-outlined text-[14px]">error</span> High Risk
+                      <span className="material-symbols-outlined text-[14px]">error</span>{' '}
+                      {t('landing_mock_risk_high')}
                     </span>
                   </div>
                 </div>
                 <div className="bg-surface-alt border border-border-subtle p-sm rounded-lg">
                   <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary mb-xs">
-                    Price Valuation
+                    {t('landing_features_card1_tag2')}
                   </div>
                   <div className="font-[JetBrains_Mono] text-[14px] font-medium text-on-surface">
-                    -12% vs Market
+                    {t('landing_features_card1_tag2_value')}
                   </div>
                 </div>
               </div>
@@ -331,10 +328,10 @@ export function LandingPage() {
                 <span className="material-symbols-outlined text-[24px]">forum</span>
               </div>
               <h3 className="text-[20px] font-bold text-on-surface mb-2">
-                Questions for the seller
+                {t('landing_features_card2_title')}
               </h3>
               <p className="text-[14px] text-on-surface-variant">
-                Generated list of targeted questions to expose inconsistencies and negotiate better.
+                {t('landing_features_card2_desc')}
               </p>
             </div>
 
@@ -343,9 +340,11 @@ export function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center mb-md group-hover:bg-primary-container/20">
                 <span className="material-symbols-outlined text-[24px]">photo_library</span>
               </div>
-              <h3 className="text-[20px] font-bold text-on-surface mb-2">Photo analysis</h3>
+              <h3 className="text-[20px] font-bold text-on-surface mb-2">
+                {t('landing_features_card3_title')}
+              </h3>
               <p className="text-[14px] text-on-surface-variant">
-                AI scans listing photos for hidden damage, mismatched parts, and wear indicators.
+                {t('landing_features_card3_desc')}
               </p>
             </div>
 
@@ -354,9 +353,11 @@ export function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center mb-md group-hover:bg-primary-container/20">
                 <span className="material-symbols-outlined text-[24px]">description</span>
               </div>
-              <h3 className="text-[20px] font-bold text-on-surface mb-2">Document data</h3>
+              <h3 className="text-[20px] font-bold text-on-surface mb-2">
+                {t('landing_features_card4_title')}
+              </h3>
               <p className="text-[14px] text-on-surface-variant">
-                Extract maintenance records and verify paperwork authenticity instantly.
+                {t('landing_features_card4_desc')}
               </p>
             </div>
 
@@ -367,10 +368,11 @@ export function LandingPage() {
                   <span className="material-symbols-outlined text-[24px]">query_stats</span>
                 </div>
                 <div>
-                  <h3 className="text-[20px] font-bold text-on-surface mb-2">Market comparison</h3>
+                  <h3 className="text-[20px] font-bold text-on-surface mb-2">
+                    {t('landing_features_card5_title')}
+                  </h3>
                   <p className="text-[14px] text-on-surface-variant max-w-lg">
-                    See how the car stacks up against active listings and historical sales data for
-                    true valuation.
+                    {t('landing_features_card5_desc')}
                   </p>
                 </div>
               </div>
@@ -381,9 +383,11 @@ export function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center mb-md group-hover:bg-primary-container/20">
                 <span className="material-symbols-outlined text-[24px]">chat_bubble</span>
               </div>
-              <h3 className="text-[20px] font-bold text-on-surface mb-2">Chat with your data</h3>
+              <h3 className="text-[20px] font-bold text-on-surface mb-2">
+                {t('landing_features_card6_title')}
+              </h3>
               <p className="text-[14px] text-on-surface-variant">
-                Ask specific questions about the analyzed car history and get instant AI answers.
+                {t('landing_features_card6_desc')}
               </p>
             </div>
           </div>
@@ -394,27 +398,21 @@ export function LandingPage() {
           <div className="max-w-[1280px] mx-auto px-gutter text-center">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-lg mb-8">
               <div>
-                <div className="font-[Fraunces] text-[48px] font-bold text-primary-container mb-2">
-                  0
-                </div>
-                <div className="text-[16px] text-text-secondary">Data Stored</div>
+                <div className="font-[Fraunces] text-[48px] font-bold text-primary-container mb-2">0</div>
+                <div className="text-[16px] text-text-secondary">{t('landing_stats_label1')}</div>
               </div>
               <div>
-                <div className="font-[Fraunces] text-[48px] font-bold text-primary-container mb-2">
-                  100%
-                </div>
-                <div className="text-[16px] text-text-secondary">Objective Analysis</div>
+                <div className="font-[Fraunces] text-[48px] font-bold text-primary-container mb-2">100%</div>
+                <div className="text-[16px] text-text-secondary">{t('landing_stats_label2')}</div>
               </div>
               <div>
-                <div className="font-[Fraunces] text-[48px] font-bold text-primary-container mb-2">
-                  24/7
-                </div>
-                <div className="text-[16px] text-text-secondary">Instant Reports</div>
+                <div className="font-[Fraunces] text-[48px] font-bold text-primary-container mb-2">24/7</div>
+                <div className="text-[16px] text-text-secondary">{t('landing_stats_label3')}</div>
               </div>
             </div>
             <p className="font-[JetBrains_Mono] text-[12px] text-text-secondary flex items-center justify-center gap-2">
               <span className="material-symbols-outlined text-[16px]">lock</span>
-              Your data is analyzed in memory and instantly discarded.
+              {t('landing_stats_note')}
             </p>
           </div>
         </section>
@@ -423,16 +421,16 @@ export function LandingPage() {
         <section className="py-xxl relative" id="join-beta">
           <div className="max-w-[1280px] mx-auto px-gutter relative z-10 text-center">
             <h2 className="font-[Fraunces] text-[48px] leading-[1.2] font-semibold text-on-surface mb-8">
-              Join the closed beta
+              {t('landing_cta_title')}
             </h2>
             <a
               className="inline-flex items-center justify-center bg-primary-container text-surface-container-lowest text-[16px] font-bold py-4 px-12 rounded-full hover:bg-primary transition-all duration-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] mb-4"
               href="/auth"
             >
-              Join the whitelist →
+              {t('landing_cta_button')}
             </a>
             <p className="font-[JetBrains_Mono] text-[12px] text-text-secondary">
-              *By joining, you agree to our Terms of Service and Privacy Policy.
+              {t('landing_cta_disclaimer')}
             </p>
           </div>
         </section>
@@ -446,34 +444,26 @@ export function LandingPage() {
               AutoVerdikt
             </div>
             <div className="flex flex-wrap justify-center gap-6">
-              <a
-                className="text-[14px] text-on-surface-variant hover:text-primary transition-colors"
-                href="#"
-              >
-                Privacy Policy
+              <a className="text-[14px] text-on-surface-variant hover:text-primary transition-colors" href="#">
+                {t('landing_footer_privacy')}
               </a>
-              <a
-                className="text-[14px] text-on-surface-variant hover:text-primary transition-colors"
-                href="#"
-              >
-                Terms of Service
+              <a className="text-[14px] text-on-surface-variant hover:text-primary transition-colors" href="#">
+                {t('landing_footer_terms')}
               </a>
-              <a
-                className="text-[14px] text-on-surface-variant hover:text-primary transition-colors"
-                href="#how-it-works"
-              >
-                How it works
+              <a className="text-[14px] text-on-surface-variant hover:text-primary transition-colors" href="#how-it-works">
+                {t('landing_footer_howItWorks')}
               </a>
             </div>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-border-subtle">
-            <div className="text-[14px] text-text-secondary">
-              © 2026 AutoVerdikt. All rights reserved.
-            </div>
-            <div className="flex items-center gap-2 text-text-secondary text-[14px]">
+            <div className="text-[14px] text-text-secondary">{t('landing_footer_copyright')}</div>
+            <button
+              onClick={cycleLanguage}
+              className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors text-[14px]"
+            >
               <span className="material-symbols-outlined text-[16px]">language</span>
-              <span>English</span>
-            </div>
+              <span>{t('landing_footer_language')}</span>
+            </button>
           </div>
         </div>
       </footer>
