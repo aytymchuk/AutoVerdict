@@ -1,11 +1,18 @@
 # Test Configuration & Guidelines
 
-1. **Mirrored Structure**: Test projects are mirrored exactly from `src/` (e.g., `Application.Tests` tests `Application`).
-2. **Centralized Config**: A separate `Directory.Build.props` in this folder marks `<IsTestProject>true</IsTestProject>` and `<IsPackable>false</IsPackable>`.
-3. **Packages**: Global dependencies (xUnit, Coverlet, Test SDK, Shouldly) are strictly versioned in the root `Directory.Packages.props`.
-4. **Architecture Tests**: Use `AutoVerdikt.Architecture.Tests` (`NetArchTest.Rules`) to enforce dependency rules across the solution.
-   - **Crucial Rule**: `Agents` must depend on `Application`. `Application` must NEVER depend on `Agents` (Inversion of Control).
-5. **Format**: Follow standard Arrange/Act/Assert xUnit patterns with semantic naming.
-6. **Assertions**: All tests **MUST** use the `Shouldly` library for assertions (e.g., `result.ShouldBeTrue()`), rather than standard xUnit assertions.
-7. **FluentValidation Tests**: When testing `AbstractValidator<T>` subclasses, use the `FluentValidation.TestHelper` API: `validator.TestValidate(model)` returns a `TestValidationResult`; assert with `.ShouldHaveValidationErrorFor(x => x.Property).WithErrorMessage("...")` and `.ShouldNotHaveAnyValidationErrors()`. These are the canonical assertions for validator unit tests and take precedence over Shouldly for validation-specific checks.
-8. **Error type assertions**: When a handler or service returns `Result.Fail(...)`, assert both the failure state and the concrete `Error` subtype using `result.Errors[0].ShouldBeOfType<SomeError>()`. This verifies the correct typed error is returned, not just any failure message.
+## Structure
+
+1. **Mirrored layout**: Each test project mirrors its source counterpart (e.g., `AutoVerdikt.Application.Tests` tests `AutoVerdikt.Application`). Folder structure inside a test project mirrors the source project.
+2. **Shared config**: `tests/Directory.Build.props` marks all projects as `<IsTestProject>true</IsTestProject>` and pulls in xUnit, Shouldly, Coverlet, and the Test SDK automatically.
+3. **Extra packages**: Add only project-specific packages (e.g., `Moq`) in the individual test `.csproj` — do not duplicate packages already provided by `Directory.Build.props`.
+
+## Conventions
+
+4. **Format**: Follow Arrange / Act / Assert with semantic test names: `<Method>_<Scenario>_<ExpectedOutcome>` (e.g., `Handle_AlreadyRegistered_ReturnsUserAlreadyRegisteredError`).
+5. **Assertions**: All tests **MUST** use **Shouldly** (e.g., `result.IsSuccess.ShouldBeTrue()`). Do not use raw xUnit `Assert.*` calls.
+6. **FluentValidation tests**: When testing `AbstractValidator<T>` subclasses, use the `FluentValidation.TestHelper` API — `validator.TestValidate(model)` returns a `TestValidationResult`; assert with `.ShouldHaveValidationErrorFor(x => x.Property).WithErrorMessage("...")` and `.ShouldNotHaveAnyValidationErrors()`. These purpose-built assertions take precedence over Shouldly for validation-specific checks.
+7. **Error type assertions**: When a handler returns `Result.Fail(...)`, assert both the failure state and the concrete `Error` subtype: `result.Errors[0].ShouldBeOfType<UserAlreadyRegisteredError>()`. Do not rely on message strings alone.
+
+## Architecture Tests
+
+See `AutoVerdikt.Architecture.Tests/AGENTS.md` for rules specific to dependency-enforcement tests.
