@@ -1,3 +1,4 @@
+using AutoVerdikt.Application.Users.Errors;
 using AutoVerdikt.Application.Users.Register;
 using Mediator;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
@@ -14,13 +15,9 @@ internal static class UserEndpoints
                 var result = await mediator.Send(new UserRegisterCommand(dto.Name, dto.Email), ct);
                 if (result.IsFailed)
                 {
-                    var duplicateError = result.Errors.FirstOrDefault(e =>
-                        (e.Metadata.TryGetValue("ErrorCode", out var code) && code?.ToString() == "DuplicateUser") ||
-                        e.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase) ||
-                        e.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase));
-
-                    if (duplicateError != null)
-                        return Results.Conflict(new { error = duplicateError.Message });
+                    var alreadyRegistered = result.Errors.OfType<UserAlreadyRegisteredError>().FirstOrDefault();
+                    if (alreadyRegistered is not null)
+                        return Results.Conflict(new { error = alreadyRegistered.Message });
 
                     return Results.BadRequest(result.Errors.Select(e => e.Message));
                 }

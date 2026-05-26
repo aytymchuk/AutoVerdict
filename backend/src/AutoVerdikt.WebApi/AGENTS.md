@@ -22,6 +22,24 @@ The composition root. Wires all layers together via Dependency Injection and exp
 - Register at startup: `AddValidatorsFromAssemblyContaining<Program>()` + `AddFluentValidationAutoValidation()`.
 - **Never** perform manual null/format checks inside the endpoint handler — delegate all input validation to the FluentValidation validator.
 
+## Error Mapping
+
+- **Use typed error checks**: When translating a `Result` failure into an HTTP response, use
+  `result.Errors.OfType<TError>().FirstOrDefault()` to detect specific error types. Never match
+  by error message string, substring, or metadata key — these are fragile and break silently on
+  wording changes.
+
+  ```csharp
+  // Correct — refactor-safe
+  var alreadyRegistered = result.Errors.OfType<UserAlreadyRegisteredError>().FirstOrDefault();
+  if (alreadyRegistered is not null)
+      return Results.Conflict(new { error = alreadyRegistered.Message });
+
+  // Wrong — fragile string matching
+  if (result.Errors.Any(e => e.Message.Contains("already registered")))
+      ...
+  ```
+
 ## Configuration
 
 - Use `IOptions<T>` for all typed configuration. Never read `IConfiguration` by string key directly inside application code.
