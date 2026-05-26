@@ -1,4 +1,5 @@
 using AutoVerdikt.Application.Users.Errors;
+using AutoVerdikt.Application.Users.GetCurrent;
 using AutoVerdikt.Application.Users.Register;
 using Mediator;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
@@ -28,6 +29,18 @@ internal static class UserEndpoints
             })
             .WithName(UserEndpointConstants.RegisterName)
             .AddFluentValidationAutoValidation();
+        // No AllowAnonymous — global fallback policy (RequireAuthenticatedUser) applies
+
+        app.MapGet(UserEndpointConstants.GetCurrentRoute,
+            async (IMediator mediator, CancellationToken ct) =>
+            {
+                var user = await mediator.Send(new GetCurrentUserQuery(), ct);
+                if (user is null)
+                    return Results.NotFound();
+
+                return Results.Ok(new UserAccountDto(user.Id, user.Name, user.Email, user.RegisteredAt));
+            })
+            .WithName(UserEndpointConstants.GetCurrentName);
         // No AllowAnonymous — global fallback policy (RequireAuthenticatedUser) applies
 
         return app;

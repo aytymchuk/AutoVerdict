@@ -14,6 +14,21 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
         return await collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken) > 0;
     }
 
+    public async Task<UserAccount?> GetByAuthIdAsync(string authId, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<UserDocument>.Filter.Eq(u => u.AuthId, authId);
+        var document = await collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
+        if (document is null)
+            return null;
+
+        return UserAccount.Reconstitute(
+            document.Id,
+            document.AuthId,
+            document.Name,
+            document.Email,
+            new DateTimeOffset(document.RegisteredAt, TimeSpan.Zero));
+    }
+
     public async Task<Result> CreateAsync(UserAccount user, CancellationToken cancellationToken = default)
     {
         var document = new UserDocument

@@ -15,4 +15,7 @@ public record UserAccount
         var now = timeProvider.GetUtcNow();
         return new() { Id = Guid.CreateVersion7(now), AuthId = authId, Name = name, Email = email, RegisteredAt = now };
     }
+
+    public static UserAccount Reconstitute(Guid id, string authId, string name, string email, DateTimeOffset registeredAt)
+        => new() { Id = id, AuthId = authId, Name = name, Email = email, RegisteredAt = registeredAt };
 }
