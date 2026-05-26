@@ -13,6 +13,7 @@ COPY ["Directory.Packages.props", "."]
 COPY ["Directory.Build.props", "."]
 
 # Copy project files
+COPY ["src/AutoVerdikt.Domain/AutoVerdikt.Domain.csproj", "src/AutoVerdikt.Domain/"]
 COPY ["src/AutoVerdikt.WebApi/AutoVerdikt.WebApi.csproj", "src/AutoVerdikt.WebApi/"]
 COPY ["src/AutoVerdikt.Application/AutoVerdikt.Application.csproj", "src/AutoVerdikt.Application/"]
 COPY ["src/AutoVerdikt.Infrastructure/AutoVerdikt.Infrastructure.csproj", "src/AutoVerdikt.Infrastructure/"]

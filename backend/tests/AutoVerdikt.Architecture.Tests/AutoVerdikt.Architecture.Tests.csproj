@@ -5,6 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\AutoVerdikt.Domain\AutoVerdikt.Domain.csproj" />
     <ProjectReference Include="..\..\src\AutoVerdikt.Application\AutoVerdikt.Application.csproj" />
     <ProjectReference Include="..\..\src\AutoVerdikt.Infrastructure\AutoVerdikt.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\AutoVerdikt.Store\AutoVerdikt.Store.csproj" />
