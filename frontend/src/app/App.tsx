@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppClerkProvider } from './providers/ClerkProvider';
 import { ChatPage } from '../pages/ChatPage';
 import { LandingPage } from '../pages/LandingPage';
+import { AuthPage } from '../pages/AuthPage';
 import { I18nProvider } from '../shared/lib/i18n';
 
 export function App() {
@@ -11,6 +12,7 @@ export function App() {
         <I18nProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/auth" element={<AuthPage />} />
             <Route
               path="/chat"
               element={

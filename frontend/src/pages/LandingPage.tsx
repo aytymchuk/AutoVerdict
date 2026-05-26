@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from '../shared/lib/i18n';
 import type { Language } from '../shared/lib/i18n';
 
@@ -17,9 +18,9 @@ export function LandingPage() {
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant/20">
         <div className="max-w-[1280px] mx-auto px-gutter h-20 flex items-center justify-between">
           <div className="flex items-center gap-xl">
-            <a className="font-headline-md text-[36px] leading-[1.3] font-semibold text-on-surface tracking-tight" href="#">
+            <Link className="font-headline-md text-[36px] leading-[1.3] font-semibold text-on-surface tracking-tight" to="/">
               AutoVerdikt
-            </a>
+            </Link>
             <div className="hidden md:flex gap-lg">
               <a className="text-on-surface-variant hover:text-primary transition-colors text-[16px]" href="#how-it-works">
                 {t('landing_nav_howItWorks')}
@@ -36,12 +37,12 @@ export function LandingPage() {
               <span className="material-symbols-outlined text-[20px]">language</span>
               <span className="hidden sm:inline uppercase tracking-wider text-[11px]">{language}</span>
             </button>
-            <a
+            <Link
               className="bg-primary-container text-surface-container-lowest text-[16px] font-bold py-3 px-6 rounded-full hover:bg-primary transition-all duration-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
-              href="/auth"
+              to="/auth"
             >
               {t('landing_nav_joinWhitelist')}
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
@@ -63,12 +64,12 @@ export function LandingPage() {
             </p>
             <div className="mt-md flex flex-col gap-4">
               <div className="flex flex-wrap gap-md">
-                <a
+                <Link
                   className="inline-flex items-center justify-center bg-primary-container text-surface-container-lowest text-[16px] font-bold py-4 px-8 rounded-full hover:bg-primary transition-all duration-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
-                  href="/auth"
+                  to="/auth"
                 >
                   {t('landing_hero_cta_primary')}
-                </a>
+                </Link>
                 <a
                   className="inline-flex items-center justify-center bg-transparent text-primary-container border border-primary-container text-[16px] font-bold py-4 px-8 rounded-full hover:bg-surface-container-highest transition-all duration-300"
                   href="#how-it-works"
@@ -423,12 +424,12 @@ export function LandingPage() {
             <h2 className="font-[Fraunces] text-[48px] leading-[1.2] font-semibold text-on-surface mb-8">
               {t('landing_cta_title')}
             </h2>
-            <a
+            <Link
               className="inline-flex items-center justify-center bg-primary-container text-surface-container-lowest text-[16px] font-bold py-4 px-12 rounded-full hover:bg-primary transition-all duration-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] mb-4"
-              href="/auth"
+              to="/auth"
             >
               {t('landing_cta_button')}
-            </a>
+            </Link>
             <p className="font-[JetBrains_Mono] text-[12px] text-text-secondary">
               {t('landing_cta_disclaimer')}
             </p>
