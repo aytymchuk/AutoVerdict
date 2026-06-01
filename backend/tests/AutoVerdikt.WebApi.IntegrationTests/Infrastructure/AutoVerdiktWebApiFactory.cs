@@ -1,5 +1,6 @@
 using AutoVerdikt.Store.Configuration;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -31,8 +32,6 @@ public sealed class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, I
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Clerk:Authority"] = "https://test.clerk.accounts.dev",
-                ["Clerk:AuthorizedParty"] = "http://localhost",
                 [$"{MongoDbOptions.SectionName}:ConnectionString"] = _mongoContainer.GetConnectionString(),
                 [$"{MongoDbOptions.SectionName}:DatabaseName"] = $"autoverdikt_it_{Guid.NewGuid():N}",
             });
@@ -40,16 +39,19 @@ public sealed class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, I
 
         builder.ConfigureTestServices(services =>
         {
-            services.PostConfigure<AuthenticationOptions>(options =>
+            services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
                 options.DefaultChallengeScheme = TestAuthHandler.SchemeName;
-            });
+            })
+            .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                TestAuthHandler.SchemeName,
+                _ => { });
 
-            services.AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
-                    TestAuthHandler.SchemeName,
-                    _ => { });
+            services.AddAuthorizationBuilder()
+                .SetFallbackPolicy(new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build());
         });
     }
 }

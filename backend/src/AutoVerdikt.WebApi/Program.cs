@@ -7,15 +7,19 @@ using FluentValidation;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+var isTesting = builder.Environment.IsEnvironment("Testing");
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddClerkAuthentication(builder.Configuration);
+if (!isTesting)
+{
+    builder.Services.AddClerkAuthentication(builder.Configuration);
+}
 
 var clerkOptions = builder.Configuration.GetSection(ClerkOptions.SectionName).Get<ClerkOptions>() ?? new ClerkOptions();
 var authorizedParty = clerkOptions.AuthorizedParty;
 
-if (!builder.Environment.IsDevelopment())
+if (!builder.Environment.IsDevelopment() && !isTesting)
 {
     ArgumentException.ThrowIfNullOrEmpty(authorizedParty);
     if (authorizedParty == "*")
@@ -26,7 +30,8 @@ if (!builder.Environment.IsDevelopment())
 
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
 {
-    if (builder.Environment.IsDevelopment() && (string.IsNullOrEmpty(authorizedParty) || authorizedParty == "*"))
+    if ((builder.Environment.IsDevelopment() || isTesting)
+        && (string.IsNullOrEmpty(authorizedParty) || authorizedParty == "*"))
     {
         p.AllowAnyOrigin()
          .AllowAnyMethod()
