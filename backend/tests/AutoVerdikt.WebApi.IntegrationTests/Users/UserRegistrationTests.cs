@@ -6,8 +6,7 @@ using Shouldly;
 
 namespace AutoVerdikt.WebApi.IntegrationTests.Users;
 
-[Collection("Integration")]
-public sealed class UserRegistrationTests(AutoVerdiktWebApiFactory factory) : UsersTestBase(factory)
+public sealed class UserRegistrationTests(AutoVerdiktWebApiFactory factory) : UsersTestBase(factory), IClassFixture<AutoVerdiktWebApiFactory>
 {
     [Fact]
     public async Task RegisterUser_ValidRequest_ReturnsCreatedWithUserData()
@@ -41,8 +40,9 @@ public sealed class UserRegistrationTests(AutoVerdiktWebApiFactory factory) : Us
         var first = await client.PostAsJsonAsync(UserEndpointConstants.RegisterRoute, dto);
         first.StatusCode.ShouldBe(HttpStatusCode.Created);
 
-        // Act
-        var second = await client.PostAsJsonAsync(UserEndpointConstants.RegisterRoute, dto);
+        // Act — different user, same email → conflict comes from the email uniqueness index
+        using var client2 = CreateAuthenticatedClient(CreateTestUserId());
+        var second = await client2.PostAsJsonAsync(UserEndpointConstants.RegisterRoute, dto);
 
         // Assert
         second.StatusCode.ShouldBe(HttpStatusCode.Conflict);

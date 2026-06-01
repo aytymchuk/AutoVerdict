@@ -151,7 +151,7 @@ export const translations = {
     landing_hiw_step1_title: '1. Podaj dane ogłoszenia',
     landing_hiw_step1_desc:
       'Skopiuj tekst ogłoszenia lub wprowadź podstawowe dane ręcznie. Możesz też dodać zdjęcia lub dokumenty.',
-    landing_hiw_step2_title: '2. AI analizuje w sekundy',
+    landing_hiw_step2_title: '2. AI analizuje w kilka sekund',
     landing_hiw_step2_desc:
       'Sprawdzamy specyfikację, oceniamy ryzyko i porównujemy z rynkiem. Twoje dane nie są przechowywane.',
     landing_hiw_step3_title: '3. Otrzymaj raport i pytania',
