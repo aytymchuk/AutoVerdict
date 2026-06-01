@@ -10,6 +10,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="AutoVerdikt.WebApi.IntegrationTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AutoVerdikt.Application\AutoVerdikt.Application.csproj" />
     <ProjectReference Include="..\AutoVerdikt.Infrastructure\AutoVerdikt.Infrastructure.csproj" />
     <ProjectReference Include="..\AutoVerdikt.Store\AutoVerdikt.Store.csproj" />

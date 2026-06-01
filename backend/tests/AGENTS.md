@@ -13,6 +13,16 @@
 6. **FluentValidation tests**: When testing `AbstractValidator<T>` subclasses, use the `FluentValidation.TestHelper` API — `validator.TestValidate(model)` returns a `TestValidationResult`; assert with `.ShouldHaveValidationErrorFor(x => x.Property).WithErrorMessage("...")` and `.ShouldNotHaveAnyValidationErrors()`. These purpose-built assertions take precedence over Shouldly for validation-specific checks.
 7. **Error type assertions**: When a handler returns `Result.Fail(...)`, assert both the failure state and the concrete `Error` subtype: `result.Errors[0].ShouldBeOfType<UserAlreadyRegisteredError>()`. Do not rely on message strings alone.
 
+## Integration Tests (`AutoVerdikt.WebApi.IntegrationTests`)
+
+8. **Scope**: Verify positive (success) scenarios and key failure scenarios (e.g., duplicate registration, unauthorized access). Do **not** add validation tests (empty fields, invalid email format, etc.) — those belong in unit tests (`AutoVerdikt.WebApi.Tests` with FluentValidation.TestHelper, `AutoVerdikt.Application.Tests` for handlers).
+9. **Edge cases**: Specific edge cases and input validation must be covered via **Unit Tests**, not integration tests.
+10. **No infrastructure mocks**: Do not mock databases or blob storage. Run real dependencies in Docker via **Testcontainers**.
+11. **Authentication**: May be mocked (test auth handler) for flexible user identity and roles without real Clerk JWTs.
+12. **Layout**: One folder per feature under the integration test project; each feature has its own test base class (e.g., `Users/UsersTestBase.cs`) inheriting `BaseFixture`. Do not name feature classes `*Fixture` — that conflicts with AutoFixture’s `Fixture` type in C# 13.
+13. **Isolation**: Tests must be independent and idempotent — use unique data per test (via `AutoFixture`) so tests never share identifiers or affect each other.
+14. **Test data**: Use **AutoFixture** for generating test data — avoid hand-crafted dummy strings.
+
 ## Architecture Tests
 
 See `AutoVerdikt.Architecture.Tests/AGENTS.md` for rules specific to dependency-enforcement tests.
