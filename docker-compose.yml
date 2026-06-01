@@ -7,6 +7,8 @@ services:
       - "5065:8080"
     env_file:
       - .env
+    environment:
+      MongoDb__ConnectionString: mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-example}@mongodb:27017/?authSource=admin
     depends_on:
       - mongodb
       - azurite
@@ -33,7 +35,8 @@ services:
         condition: service_healthy
 
   mongodb:
-    image: mongo:7.0
+    image: mongo:8.0
+    platform: linux/amd64
     ports:
       - "27017:27017"
     environment:
@@ -53,6 +56,7 @@ services:
 
   seq:
     image: datalust/seq:2024.3
+    platform: linux/amd64
     ports:
       - "5341:80"
     env_file:
