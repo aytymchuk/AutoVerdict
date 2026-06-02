@@ -6,4 +6,6 @@ public class ClerkOptions
 
     public string Authority { get; set; } = string.Empty;
     public string? AuthorizedParty { get; set; }
+    // TODO: Move to a dedicated Scalar configuration section
+    public string ClientId { get; set; } = string.Empty;
 }
