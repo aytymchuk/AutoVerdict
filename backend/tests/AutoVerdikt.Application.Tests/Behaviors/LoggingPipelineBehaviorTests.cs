@@ -8,9 +8,9 @@ using Shouldly;
 namespace AutoVerdikt.Application.Tests.Behaviors;
 
 // Minimal test message types — IRequest<T> satisfies the IMessage constraint on the behavior
-internal sealed record SuccessCommand : IRequest<Result<string>>;
-internal sealed record FailureCommand : IRequest<Result<string>>;
-internal sealed record ThrowingCommand : IRequest<Result<string>>;
+public sealed record SuccessCommand : IRequest<Result<string>>;
+public sealed record FailureCommand : IRequest<Result<string>>;
+public sealed record ThrowingCommand : IRequest<Result<string>>;
 
 public class LoggingPipelineBehaviorTests
 {
