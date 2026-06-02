@@ -75,7 +75,9 @@ public sealed class UserRegistrationTests(AutoVerdiktWebApiFactory factory) : Us
         root.GetProperty("errorCode").GetString().ShouldBe("USR-001");
         root.GetProperty("title").GetString().ShouldBe("User is already registered.");
         root.TryGetProperty("type", out var typeProp).ShouldBeTrue();
-        typeProp.GetString()!.ShouldContain("usr-001");
+        var typeValue = typeProp.GetString();
+        typeValue.ShouldNotBeNull();
+        typeValue.ShouldContain("usr-001");
     }
 
     [Fact]
