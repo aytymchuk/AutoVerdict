@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useCallback } from 'react';
+import { ApiError, type ProblemDetails } from './problemDetails';
 
 export function useApi() {
   const { getToken } = useAuth();
@@ -22,7 +23,16 @@ export function useApi() {
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
+        const contentType = response.headers.get('Content-Type') ?? '';
+        if (contentType.includes('application/problem+json')) {
+          const problemDetails = (await response.json()) as ProblemDetails;
+          throw new ApiError(
+            response.status,
+            problemDetails.title ?? `API error: ${response.status}`,
+            problemDetails
+          );
+        }
+        throw new ApiError(response.status, `API error: ${response.statusText}`);
       }
 
       if (response.status === 204 || response.status === 205) {
