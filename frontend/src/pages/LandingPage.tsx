@@ -1,11 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from '../shared/lib/i18n';
 import type { Language } from '../shared/lib/i18n';
+import { useUserStatus } from '../shared/context/UserStatusContext';
 
 const LANGUAGES: Language[] = ['en', 'pl', 'uk'];
 
 export function LandingPage() {
   const { t, language, setLanguage } = useTranslation();
+  const { status } = useUserStatus();
+
+  if (status === 'registered') return <Navigate to="/home" replace />;
+  if (status === 'unregistered') return <Navigate to="/register" replace />;
 
   function cycleLanguage() {
     const idx = LANGUAGES.indexOf(language);

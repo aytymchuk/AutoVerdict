@@ -22,7 +22,8 @@ export function useApi() {
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
+        const body = await response.text();
+        throw new Error(body || `API error: ${response.statusText}`);
       }
 
       if (response.status === 204 || response.status === 205) {
