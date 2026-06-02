@@ -19,9 +19,9 @@ internal sealed class SecuritySchemeDocumentTransformer(
         var authUrl = opts.AuthorizationUrl ?? $"{authority}/oauth/authorize";
         var tokenUrl = opts.TokenUrl ?? $"{authority}/oauth/token";
 
-        document.Components ??= new OpenApiComponents();
+        var components = document.Components ??= new OpenApiComponents();
 
-        document.Components.SecuritySchemes[SecuritySchemeNames.ClerkOAuth2] = new OpenApiSecurityScheme
+        components.SecuritySchemes[SecuritySchemeNames.ClerkOAuth2] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.OAuth2,
             Flows = new OpenApiOAuthFlows
@@ -40,7 +40,7 @@ internal sealed class SecuritySchemeDocumentTransformer(
             }
         };
 
-        document.Components.SecuritySchemes[SecuritySchemeNames.Bearer] = new OpenApiSecurityScheme
+        components.SecuritySchemes[SecuritySchemeNames.Bearer] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.Http,
             Scheme = "bearer",

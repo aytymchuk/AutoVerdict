@@ -39,8 +39,8 @@ internal static class OpenApiExtensions
         {
             options
                 .WithTitle("AutoVerdikt API")
-                .WithPreferredScheme(SecuritySchemeNames.ClerkOAuth2)
-                .WithOAuth2Authentication(oauth2 =>
+                .AddPreferredSecuritySchemes(SecuritySchemeNames.ClerkOAuth2)
+                .AddOAuth2Authentication(oauth2 =>
                 {
                     oauth2.ClientId = clientId;
                 });
