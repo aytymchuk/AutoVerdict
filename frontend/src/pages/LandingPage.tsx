@@ -1,7 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from '../shared/lib/i18n';
 import type { Language } from '../shared/lib/i18n';
-import { useUserStatus } from '../shared/context/UserStatusContext';
+import { useUserStatus } from '../shared/hooks/useUserStatus';
 
 const LANGUAGES: Language[] = ['en', 'pl', 'uk'];
 

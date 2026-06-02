@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { useApi } from '../shared/api/fetcher';
-import { useUserStatus } from '../shared/context/UserStatusContext';
+import { useUserStatus } from '../shared/hooks/useUserStatus';
 
 interface ApiError {
   errors?: Record<string, string[]>;

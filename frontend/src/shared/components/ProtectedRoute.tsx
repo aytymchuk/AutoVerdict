@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { useUserStatus } from '../context/UserStatusContext';
+import { useUserStatus } from '../hooks/useUserStatus';
 
 function LoadingScreen() {
   return (

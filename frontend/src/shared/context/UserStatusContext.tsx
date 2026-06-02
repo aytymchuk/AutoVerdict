@@ -1,14 +1,14 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 
-type UserStatus = 'loading' | 'unauthenticated' | 'unregistered' | 'registered';
+export type UserStatus = 'loading' | 'unauthenticated' | 'unregistered' | 'registered';
 
-interface UserStatusContextValue {
+export interface UserStatusContextValue {
   status: UserStatus;
   refetch: () => void;
 }
 
-const UserStatusContext = createContext<UserStatusContextValue | null>(null);
+export const UserStatusContext = createContext<UserStatusContextValue | null>(null);
 
 export function UserStatusProvider({ children }: { children: ReactNode }) {
   const { getToken, isSignedIn, isLoaded } = useAuth();
@@ -20,15 +20,16 @@ export function UserStatusProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isLoaded) return;
 
-    if (!isSignedIn) {
-      setStatus('unauthenticated');
-      return;
-    }
-
     let cancelled = false;
-    setStatus('loading');
 
     (async () => {
+      if (!isSignedIn) {
+        if (!cancelled) setStatus('unauthenticated');
+        return;
+      }
+
+      if (!cancelled) setStatus('loading');
+
       try {
         const token = await getToken();
         const res = await fetch('/api/users/me', {
@@ -50,10 +51,4 @@ export function UserStatusProvider({ children }: { children: ReactNode }) {
       {children}
     </UserStatusContext.Provider>
   );
-}
-
-export function useUserStatus(): UserStatusContextValue {
-  const ctx = useContext(UserStatusContext);
-  if (!ctx) throw new Error('useUserStatus must be used inside UserStatusProvider');
-  return ctx;
 }
