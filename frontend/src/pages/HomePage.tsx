@@ -1,22 +1,23 @@
 import { useClerk, useUser } from '@clerk/clerk-react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export function HomePage() {
   const { user } = useUser();
   const { signOut } = useClerk();
-  const navigate = useNavigate();
 
   async function handleSignOut() {
-    await signOut();
-    navigate('/', { replace: true });
+    await signOut({ redirectUrl: '/' });
   }
 
   return (
     <div className="min-h-screen bg-surface-container-lowest text-on-surface flex flex-col">
       <header className="border-b border-outline-variant/20 bg-background/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <span className="font-headline-md text-[24px] font-semibold text-on-surface tracking-tight">
+        <Link
+          to="/"
+          className="font-headline-md text-[24px] font-semibold text-on-surface tracking-tight hover:text-primary transition-colors"
+        >
           AutoVerdikt
-        </span>
+        </Link>
         <div className="flex items-center gap-4">
           {user && (
             <span className="text-on-surface-variant text-[14px]">
@@ -37,7 +38,7 @@ export function HomePage() {
         <h1 className="font-headline-md text-[32px] font-semibold text-on-surface tracking-tight">
           Dashboard
         </h1>
-        <p className="text-on-surface-variant text-[16px] text-center max-w-sm">
+        <p className="text-on-surface-variant text-[16px] text-center max-w-[24rem]">
           Welcome{user?.firstName ? `, ${user.firstName}` : ''}! Your dashboard is coming soon.
         </p>
       </main>

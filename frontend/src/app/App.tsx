@@ -3,10 +3,11 @@ import { AppClerkProvider } from './providers/ClerkProvider';
 import { ChatPage } from '../pages/ChatPage';
 import { LandingPage } from '../pages/LandingPage';
 import { AuthPage } from '../pages/AuthPage';
+import { AuthCallbackPage } from '../pages/AuthCallbackPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { HomePage } from '../pages/HomePage';
 import { I18nProvider } from '../shared/lib/i18n';
-import { UserStatusProvider } from '../shared/context/UserStatusContext';
+import { UserStatusProvider } from '../shared/context/userStatusProvider';
 import { ProtectedRoute, RegisterRoute } from '../shared/components/ProtectedRoute';
 
 export function App() {
@@ -18,6 +19,7 @@ export function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
               <Route
                 path="/register"
                 element={

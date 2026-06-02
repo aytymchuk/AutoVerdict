@@ -1,19 +1,24 @@
 using System;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AutoVerdikt.WebApi.Authentication.Clerk;
 
 public static class ClerkAuthenticationExtensions
 {
+    private const string AuthLoggerName = "AutoVerdikt.Auth.Clerk";
     private const string AzpClaimType = "azp";
     private const string UnauthorizedPartyErrorMessage = "Unauthorized party.";
+
     public static IServiceCollection AddClerkAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var clerkOptions = configuration.GetSection(ClerkOptions.SectionName).Get<ClerkOptions>() ?? new ClerkOptions();
         var clerkAuthority = clerkOptions.Authority;
         ArgumentException.ThrowIfNullOrEmpty(clerkAuthority);
         var authorizedParty = clerkOptions.AuthorizedParty;
+        var validateAuthorizedParty = !string.IsNullOrEmpty(authorizedParty) && authorizedParty != "*";
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -41,29 +46,68 @@ public static class ClerkAuthenticationExtensions
                     ClockSkew = TimeSpan.FromSeconds(30),
                 };
 
-                // Validate the azp claim (authorized party = your frontend origin)
-                if (!string.IsNullOrEmpty(authorizedParty) && authorizedParty != "*")
+                options.Events = new JwtBearerEvents
                 {
-                    options.Events = new JwtBearerEvents
+                    OnMessageReceived = context =>
                     {
-                        OnTokenValidated = context =>
+                        var logger = GetAuthLogger(context.HttpContext.RequestServices);
+                        var hasHeader = context.Request.Headers.ContainsKey("Authorization");
+                        logger.LogDebug(
+                            "JWT OnMessageReceived: Authorization header present = {HasHeader}",
+                            hasHeader);
+                        return Task.CompletedTask;
+                    },
+
+                    OnAuthenticationFailed = context =>
+                    {
+                        var logger = GetAuthLogger(context.HttpContext.RequestServices);
+                        logger.LogWarning(
+                            "JWT authentication failed: {Error}",
+                            context.Exception.Message);
+                        return Task.CompletedTask;
+                    },
+
+                    OnTokenValidated = context =>
+                    {
+                        var logger = GetAuthLogger(context.HttpContext.RequestServices);
+
+                        if (validateAuthorizedParty)
                         {
                             var azp = context.Principal?.FindFirst(AzpClaimType)?.Value;
+                            logger.LogDebug(
+                                "JWT azp claim = '{Azp}', expected = '{Expected}'",
+                                azp,
+                                authorizedParty);
                             if (azp is null || azp != authorizedParty)
                             {
+                                logger.LogWarning(
+                                    "JWT rejected: azp '{Azp}' does not match AuthorizedParty '{Expected}'",
+                                    azp,
+                                    authorizedParty);
                                 context.Fail(UnauthorizedPartyErrorMessage);
                             }
-                            return Task.CompletedTask;
                         }
-                    };
-                }
+
+                        return Task.CompletedTask;
+                    },
+
+                    OnChallenge = context =>
+                    {
+                        var logger = GetAuthLogger(context.HttpContext.RequestServices);
+                        logger.LogWarning(
+                            "JWT challenge issued for {Path}: AuthenticateFailure = {Failure}",
+                            context.Request.Path,
+                            context.AuthenticateFailure?.Message ?? "none");
+                        return Task.CompletedTask;
+                    },
+                };
             });
 
         services.AddAuthorizationBuilder()
             .SetFallbackPolicy(new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .Build());
-        
+
         return services;
     }
 
@@ -74,4 +118,7 @@ public static class ClerkAuthenticationExtensions
 
         return app;
     }
+
+    private static ILogger GetAuthLogger(IServiceProvider requestServices) =>
+        requestServices.GetRequiredService<ILoggerFactory>().CreateLogger(AuthLoggerName);
 }

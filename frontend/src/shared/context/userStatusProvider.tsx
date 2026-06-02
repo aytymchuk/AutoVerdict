@@ -1,9 +1,11 @@
 import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { useUsersApi } from '../api/users';
 import { UserStatusContext, type UserStatus } from './userStatusContext';
 
 export function UserStatusProvider({ children }: { children: ReactNode }) {
-  const { getToken, isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
+  const usersApi = useUsersApi();
   const [status, setStatus] = useState<UserStatus>('loading');
   const [trigger, setTrigger] = useState(0);
 
@@ -23,20 +25,19 @@ export function UserStatusProvider({ children }: { children: ReactNode }) {
       if (!cancelled) setStatus('loading');
 
       try {
-        const token = await getToken();
-        const res = await fetch('/api/users/me', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        const user = await usersApi.getMe();
         if (!cancelled) {
-          setStatus(res.ok ? 'registered' : res.status === 404 ? 'unregistered' : 'loading');
+          setStatus(user ? 'registered' : 'unregistered');
         }
       } catch {
         if (!cancelled) setStatus('loading');
       }
     })();
 
-    return () => { cancelled = true; };
-  }, [isLoaded, isSignedIn, getToken, trigger]);
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, isSignedIn, usersApi, trigger]);
 
   return (
     <UserStatusContext.Provider value={{ status, refetch }}>

@@ -16,8 +16,14 @@ else
     exit 1
 fi
 
-echo "Starting AutoVerdikt local environment..."
-# Docker-first orchestration to bring up the local stack
+echo "Starting AutoVerdikt local environment (API + infra; no Docker web)..."
+# Default stack: API + databases. Use `make up-prod` to include the production web image.
 $DOCKER_COMPOSE_CMD up -d --build
 
-echo "Local environment initialization complete."
+echo ""
+echo "Local environment ready."
+echo "  API:  http://localhost:5065"
+echo "  Seq:  http://localhost:5341"
+echo ""
+echo "For frontend hot reload, run: make dev"
+echo "  (or: cd frontend && pnpm dev → http://localhost:5173)"

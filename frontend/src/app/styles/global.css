@@ -87,6 +87,7 @@
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
+  --width-form: 28rem;
   --spacing-base: 4px;
   --spacing-lg: 24px;
   --spacing-gutter: 24px;
@@ -95,14 +96,18 @@
   --spacing-container-max: 1280px;
 
   /* Font Families */
-  --font-body-sm: 'DM Sans', sans-serif;
-  --font-body-md: 'DM Sans', sans-serif;
-  --font-body-lg: 'DM Sans', sans-serif;
-  --font-label-caps: 'DM Sans', sans-serif;
-  --font-display-xl: 'Fraunces', serif;
-  --font-display-xl-mobile: 'Fraunces', serif;
-  --font-headline-lg: 'Fraunces', serif;
-  --font-headline-md: 'Fraunces', serif;
+  --font-body-sm: 'Space Grotesk', sans-serif;
+  --font-body-md: 'Space Grotesk', sans-serif;
+  --font-body-lg: 'Space Grotesk', sans-serif;
+  --font-label-caps: 'Space Grotesk', sans-serif;
+  --font-display-xl: 'Space Grotesk', sans-serif;
+  --font-display-xl-mobile: 'Space Grotesk', sans-serif;
+  --font-headline-lg: 'Space Grotesk', sans-serif;
+  --font-headline-md: 'Space Grotesk', sans-serif;
   --font-mono-data: 'JetBrains Mono', monospace;
   --font-mono-sm: 'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: var(--font-body-md);
 }

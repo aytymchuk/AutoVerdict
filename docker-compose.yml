@@ -21,6 +21,8 @@ services:
       retries: 3
 
   web:
+    profiles:
+      - production
     build:
       context: ./frontend
       dockerfile: Dockerfile

@@ -1,16 +1,11 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from '../shared/lib/i18n';
 import type { Language } from '../shared/lib/i18n';
-import { useUserStatus } from '../shared/hooks/useUserStatus';
 
 const LANGUAGES: Language[] = ['en', 'pl', 'uk'];
 
 export function LandingPage() {
   const { t, language, setLanguage } = useTranslation();
-  const { status } = useUserStatus();
-
-  if (status === 'registered') return <Navigate to="/home" replace />;
-  if (status === 'unregistered') return <Navigate to="/register" replace />;
 
   function cycleLanguage() {
     const idx = LANGUAGES.indexOf(language);
@@ -57,14 +52,14 @@ export function LandingPage() {
         <section className="max-w-[1280px] mx-auto px-gutter py-xxl lg:py-[120px] grid grid-cols-1 lg:grid-cols-12 gap-xl items-center min-h-[921px]">
           <div className="lg:col-span-7 flex flex-col gap-lg">
             <div>
-              <span className="inline-block bg-surface-alt border border-border-subtle text-text-secondary font-[JetBrains_Mono] text-[12px] px-3 py-1 rounded-full mb-4">
+              <span className="inline-block bg-surface-alt border border-border-subtle text-text-secondary font-mono-sm text-[12px] px-3 py-1 rounded-full mb-4">
                 {t('landing_hero_badge')}
               </span>
-              <h1 className="font-[Fraunces] text-[40px] lg:text-[64px] leading-[1.1] font-bold tracking-[-0.02em] text-on-surface">
+              <h1 className="font-display-xl-mobile lg:font-display-xl text-[40px] lg:text-[64px] leading-[1.1] font-bold tracking-[-0.02em] text-on-surface">
                 {t('landing_hero_headline')}
               </h1>
             </div>
-            <p className="font-[DM_Sans] text-[20px] leading-[1.6] text-on-surface-variant max-w-2xl">
+            <p className="font-body-md text-[20px] leading-[1.6] text-on-surface-variant max-w-2xl">
               {t('landing_hero_description')}
             </p>
             <div className="mt-md flex flex-col gap-4">
@@ -99,17 +94,17 @@ export function LandingPage() {
               <div className="relative z-10 flex flex-col gap-md">
                 <div className="flex justify-between items-start border-b border-border-subtle pb-md">
                   <div>
-                    <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary uppercase tracking-widest mb-1">
+                    <div className="font-mono-sm text-[12px] text-text-secondary uppercase tracking-widest mb-1">
                       {t('landing_mock_label')}
                     </div>
                     <h3 className="text-[20px] font-bold text-on-surface">Volkswagen Golf 2018</h3>
-                    <div className="font-[JetBrains_Mono] text-[14px] text-on-surface-variant mt-1">
+                    <div className="font-mono-sm text-[14px] text-on-surface-variant mt-1">
                       VIN: WVWZZZAUZJW******
                     </div>
                   </div>
                   <div className="bg-risk-medium/15 text-risk-medium px-3 py-1.5 rounded-full flex items-center gap-2 border border-risk-medium/20">
                     <span className="material-symbols-outlined fill text-[16px]">warning</span>
-                    <span className="font-[DM_Sans] text-[12px] uppercase tracking-[0.1em] font-bold">
+                    <span className="font-body-md text-[12px] uppercase tracking-[0.1em] font-bold">
                       {t('landing_mock_risk_medium')}
                     </span>
                   </div>
@@ -126,7 +121,7 @@ export function LandingPage() {
                         <span className="material-symbols-outlined text-[18px]">history</span>
                       </div>
                       <div>
-                        <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary">
+                        <div className="font-mono-sm text-[12px] text-text-secondary">
                           {t('landing_mock_mileage_label')}
                         </div>
                         <div className="text-[14px] text-on-surface mt-1">
@@ -139,7 +134,7 @@ export function LandingPage() {
                         <span className="material-symbols-outlined text-[18px]">car_crash</span>
                       </div>
                       <div>
-                        <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary">
+                        <div className="font-mono-sm text-[12px] text-text-secondary">
                           {t('landing_mock_history_label')}
                         </div>
                         <div className="text-[14px] text-on-surface mt-1">
@@ -151,11 +146,11 @@ export function LandingPage() {
                 </div>
 
                 <div className="mt-2 pt-md border-t border-border-subtle flex justify-between items-center">
-                  <div className="flex items-center gap-2 text-text-secondary font-[JetBrains_Mono] text-[12px]">
+                  <div className="flex items-center gap-2 text-text-secondary font-mono-sm text-[12px]">
                     <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
                     {t('landing_mock_processing')}
                   </div>
-                  <div className="font-[JetBrains_Mono] text-[14px] font-medium text-primary-container">
+                  <div className="font-mono-sm text-[14px] font-medium text-primary-container">
                     65%
                   </div>
                 </div>
@@ -168,7 +163,7 @@ export function LandingPage() {
         <section className="bg-surface py-xxl border-y border-outline-variant/10" id="how-it-works">
           <div className="max-w-[1280px] mx-auto px-gutter">
             <div className="text-center mb-xl">
-              <h2 className="font-[Fraunces] text-[48px] leading-[1.2] font-semibold text-on-surface">
+              <h2 className="font-headline-lg text-[48px] leading-[1.2] font-semibold text-on-surface">
                 {t('landing_hiw_title')}
               </h2>
               <p className="text-[20px] leading-[1.6] text-on-surface-variant mt-4 max-w-2xl mx-auto">
@@ -181,13 +176,13 @@ export function LandingPage() {
 
               {/* Step 1 */}
               <div className="relative z-10 bg-surface-container-lowest p-lg rounded-xl border border-border-subtle inner-glow flex flex-col items-center text-center">
-                <div className="absolute -top-6 -left-4 font-[Fraunces] text-[80px] text-surface-container-highest font-bold opacity-50 select-none">
+                <div className="absolute -top-6 -left-4 font-display-xl text-[80px] text-surface-container-highest font-bold opacity-50 select-none">
                   01
                 </div>
                 <div className="w-16 h-16 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center mb-md border border-primary-container/20">
                   <span className="material-symbols-outlined text-[32px]">content_paste</span>
                 </div>
-                <h3 className="font-[Fraunces] text-[24px] font-semibold text-on-surface mb-2">
+                <h3 className="font-headline-md text-[24px] font-semibold text-on-surface mb-2">
                   {t('landing_hiw_step1_title')}
                 </h3>
                 <p className="text-[14px] text-on-surface-variant">{t('landing_hiw_step1_desc')}</p>
@@ -195,13 +190,13 @@ export function LandingPage() {
 
               {/* Step 2 */}
               <div className="relative z-10 bg-surface-container-lowest p-lg rounded-xl border border-border-subtle inner-glow flex flex-col items-center text-center">
-                <div className="absolute -top-6 -left-4 font-[Fraunces] text-[80px] text-surface-container-highest font-bold opacity-50 select-none">
+                <div className="absolute -top-6 -left-4 font-display-xl text-[80px] text-surface-container-highest font-bold opacity-50 select-none">
                   02
                 </div>
                 <div className="w-16 h-16 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center mb-md border border-primary-container/20">
                   <span className="material-symbols-outlined text-[32px]">memory</span>
                 </div>
-                <h3 className="font-[Fraunces] text-[24px] font-semibold text-on-surface mb-2">
+                <h3 className="font-headline-md text-[24px] font-semibold text-on-surface mb-2">
                   {t('landing_hiw_step2_title')}
                 </h3>
                 <p className="text-[14px] text-on-surface-variant">{t('landing_hiw_step2_desc')}</p>
@@ -209,13 +204,13 @@ export function LandingPage() {
 
               {/* Step 3 */}
               <div className="relative z-10 bg-surface-container-lowest p-lg rounded-xl border border-border-subtle inner-glow flex flex-col items-center text-center">
-                <div className="absolute -top-6 -left-4 font-[Fraunces] text-[80px] text-surface-container-highest font-bold opacity-50 select-none">
+                <div className="absolute -top-6 -left-4 font-display-xl text-[80px] text-surface-container-highest font-bold opacity-50 select-none">
                   03
                 </div>
                 <div className="w-16 h-16 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center mb-md border border-primary-container/20">
                   <span className="material-symbols-outlined text-[32px]">analytics</span>
                 </div>
-                <h3 className="font-[Fraunces] text-[24px] font-semibold text-on-surface mb-2">
+                <h3 className="font-headline-md text-[24px] font-semibold text-on-surface mb-2">
                   {t('landing_hiw_step3_title')}
                 </h3>
                 <p className="text-[14px] text-on-surface-variant">{t('landing_hiw_step3_desc')}</p>
@@ -227,7 +222,7 @@ export function LandingPage() {
         {/* Data Control Section */}
         <section className="max-w-[1280px] mx-auto px-gutter py-xxl border-b border-outline-variant/10">
           <div className="text-center mb-xl">
-            <h2 className="font-[Fraunces] text-[48px] leading-[1.2] font-semibold text-on-surface">
+            <h2 className="font-headline-lg text-[48px] leading-[1.2] font-semibold text-on-surface">
               {t('landing_data_title')}
             </h2>
             <p className="text-[20px] leading-[1.6] text-on-surface-variant mt-4 max-w-2xl mx-auto">
@@ -241,11 +236,11 @@ export function LandingPage() {
                 <div className="w-12 h-12 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center">
                   <span className="material-symbols-outlined text-[24px]">edit_document</span>
                 </div>
-                <span className="font-[DM_Sans] text-[10px] bg-surface-container-highest px-2 py-1 rounded text-text-secondary uppercase tracking-widest">
+                <span className="font-body-md text-[10px] bg-surface-container-highest px-2 py-1 rounded text-text-secondary uppercase tracking-widest">
                   {t('landing_data_card1_badge')}
                 </span>
               </div>
-              <h3 className="font-[Fraunces] text-[20px] font-semibold text-on-surface mb-2">
+              <h3 className="font-headline-md text-[20px] font-semibold text-on-surface mb-2">
                 {t('landing_data_card1_title')}
               </h3>
               <p className="text-[14px] text-on-surface-variant">{t('landing_data_card1_desc')}</p>
@@ -257,11 +252,11 @@ export function LandingPage() {
                 <div className="w-12 h-12 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center">
                   <span className="material-symbols-outlined text-[24px]">content_copy</span>
                 </div>
-                <span className="font-[DM_Sans] text-[10px] bg-primary-container/20 text-primary-container px-2 py-1 rounded uppercase tracking-widest">
+                <span className="font-body-md text-[10px] bg-primary-container/20 text-primary-container px-2 py-1 rounded uppercase tracking-widest">
                   {t('landing_data_card2_badge')}
                 </span>
               </div>
-              <h3 className="font-[Fraunces] text-[20px] font-semibold text-on-surface mb-2">
+              <h3 className="font-headline-md text-[20px] font-semibold text-on-surface mb-2">
                 {t('landing_data_card2_title')}
               </h3>
               <p className="text-[14px] text-on-surface-variant">{t('landing_data_card2_desc')}</p>
@@ -273,11 +268,11 @@ export function LandingPage() {
                 <div className="w-12 h-12 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center">
                   <span className="material-symbols-outlined text-[24px]">photo_camera</span>
                 </div>
-                <span className="font-[DM_Sans] text-[10px] bg-secondary-container/20 text-secondary-container px-2 py-1 rounded uppercase tracking-widest">
+                <span className="font-body-md text-[10px] bg-secondary-container/20 text-secondary-container px-2 py-1 rounded uppercase tracking-widest">
                   {t('landing_data_card3_badge')}
                 </span>
               </div>
-              <h3 className="font-[Fraunces] text-[20px] font-semibold text-on-surface mb-2">
+              <h3 className="font-headline-md text-[20px] font-semibold text-on-surface mb-2">
                 {t('landing_data_card3_title')}
               </h3>
               <p className="text-[14px] text-on-surface-variant">{t('landing_data_card3_desc')}</p>
@@ -287,17 +282,17 @@ export function LandingPage() {
 
         {/* Features Bento */}
         <section className="max-w-[1280px] mx-auto px-gutter py-xxl">
-          <h2 className="font-[Fraunces] text-[48px] leading-[1.2] font-semibold text-on-surface mb-xl text-center">
+          <h2 className="font-headline-lg text-[48px] leading-[1.2] font-semibold text-on-surface mb-xl text-center">
             {t('landing_features_title')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
             {/* Feature Card 1 — wide */}
             <div className="bg-surface p-lg rounded-xl border border-border-subtle inner-glow hover:bg-[#1A2030] hover:border-l-4 hover:border-l-primary-container transition-all duration-300 group flex flex-col lg:col-span-2 relative overflow-hidden">
               <div className="relative z-10">
-                <span className="font-[DM_Sans] text-[12px] text-primary-container tracking-widest uppercase mb-sm block">
+                <span className="font-body-md text-[12px] text-primary-container tracking-widest uppercase mb-sm block">
                   {t('landing_features_card1_label')}
                 </span>
-                <h3 className="font-[Fraunces] text-[36px] leading-[1.3] font-semibold text-on-surface mb-md max-w-md">
+                <h3 className="font-headline-md text-[36px] leading-[1.3] font-semibold text-on-surface mb-md max-w-[28rem]">
                   {t('landing_features_card1_title')}
                 </h3>
                 <p className="text-[14px] text-on-surface-variant">
@@ -306,7 +301,7 @@ export function LandingPage() {
               </div>
               <div className="mt-xl grid grid-cols-2 gap-sm relative z-10">
                 <div className="bg-surface-alt border border-border-subtle p-sm rounded-lg">
-                  <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary mb-xs">
+                  <div className="font-mono-sm text-[12px] text-text-secondary mb-xs">
                     {t('landing_features_card1_tag1')}
                   </div>
                   <div className="flex items-center gap-xs">
@@ -317,10 +312,10 @@ export function LandingPage() {
                   </div>
                 </div>
                 <div className="bg-surface-alt border border-border-subtle p-sm rounded-lg">
-                  <div className="font-[JetBrains_Mono] text-[12px] text-text-secondary mb-xs">
+                  <div className="font-mono-sm text-[12px] text-text-secondary mb-xs">
                     {t('landing_features_card1_tag2')}
                   </div>
-                  <div className="font-[JetBrains_Mono] text-[14px] font-medium text-on-surface">
+                  <div className="font-mono-sm text-[14px] font-medium text-on-surface">
                     {t('landing_features_card1_tag2_value')}
                   </div>
                 </div>
@@ -368,20 +363,16 @@ export function LandingPage() {
             </div>
 
             {/* Feature Card 5 — wide */}
-            <div className="bg-surface p-lg rounded-xl border border-border-subtle inner-glow hover:bg-[#1A2030] hover:border-l-4 hover:border-l-primary-container transition-all duration-300 group flex flex-col justify-center lg:col-span-2">
-              <div className="flex items-start gap-md">
-                <div className="w-12 h-12 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center shrink-0 group-hover:bg-primary-container/20">
-                  <span className="material-symbols-outlined text-[24px]">query_stats</span>
-                </div>
-                <div>
-                  <h3 className="text-[20px] font-bold text-on-surface mb-2">
-                    {t('landing_features_card5_title')}
-                  </h3>
-                  <p className="text-[14px] text-on-surface-variant max-w-lg">
-                    {t('landing_features_card5_desc')}
-                  </p>
-                </div>
+            <div className="bg-surface p-lg rounded-xl border border-border-subtle inner-glow hover:bg-[#1A2030] hover:border-l-4 hover:border-l-primary-container transition-all duration-300 group flex flex-col justify-center min-w-0 lg:col-span-2">
+              <div className="w-12 h-12 rounded-full bg-primary-container/15 text-primary-container flex items-center justify-center mb-md group-hover:bg-primary-container/20">
+                <span className="material-symbols-outlined text-[24px]">query_stats</span>
               </div>
+              <h3 className="text-[20px] font-bold text-on-surface mb-2">
+                {t('landing_features_card5_title')}
+              </h3>
+              <p className="text-[14px] text-on-surface-variant">
+                {t('landing_features_card5_desc')}
+              </p>
             </div>
 
             {/* Feature Card 6 */}
@@ -404,19 +395,19 @@ export function LandingPage() {
           <div className="max-w-[1280px] mx-auto px-gutter text-center">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-lg mb-8">
               <div>
-                <div className="font-[Fraunces] text-[48px] font-bold text-primary-container mb-2">0</div>
+                <div className="font-headline-lg text-[48px] font-bold text-primary-container mb-2">0</div>
                 <div className="text-[16px] text-text-secondary">{t('landing_stats_label1')}</div>
               </div>
               <div>
-                <div className="font-[Fraunces] text-[48px] font-bold text-primary-container mb-2">100%</div>
+                <div className="font-headline-lg text-[48px] font-bold text-primary-container mb-2">100%</div>
                 <div className="text-[16px] text-text-secondary">{t('landing_stats_label2')}</div>
               </div>
               <div>
-                <div className="font-[Fraunces] text-[48px] font-bold text-primary-container mb-2">24/7</div>
+                <div className="font-headline-lg text-[48px] font-bold text-primary-container mb-2">24/7</div>
                 <div className="text-[16px] text-text-secondary">{t('landing_stats_label3')}</div>
               </div>
             </div>
-            <p className="font-[JetBrains_Mono] text-[12px] text-text-secondary flex items-center justify-center gap-2">
+            <p className="font-mono-sm text-[12px] text-text-secondary flex items-center justify-center gap-2">
               <span className="material-symbols-outlined text-[16px]">lock</span>
               {t('landing_stats_note')}
             </p>
@@ -426,7 +417,7 @@ export function LandingPage() {
         {/* Final CTA Section */}
         <section className="py-xxl relative" id="join-beta">
           <div className="max-w-[1280px] mx-auto px-gutter relative z-10 text-center">
-            <h2 className="font-[Fraunces] text-[48px] leading-[1.2] font-semibold text-on-surface mb-8">
+            <h2 className="font-headline-lg text-[48px] leading-[1.2] font-semibold text-on-surface mb-8">
               {t('landing_cta_title')}
             </h2>
             <Link
@@ -435,7 +426,7 @@ export function LandingPage() {
             >
               {t('landing_cta_button')}
             </Link>
-            <p className="font-[JetBrains_Mono] text-[12px] text-text-secondary">
+            <p className="font-mono-sm text-[12px] text-text-secondary">
               {t('landing_cta_disclaimer')}
             </p>
           </div>
@@ -446,7 +437,7 @@ export function LandingPage() {
       <footer className="w-full py-xl bg-surface-container-lowest border-t border-outline-variant/10">
         <div className="max-w-[1280px] mx-auto px-gutter flex flex-col gap-md">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="font-[Fraunces] text-[36px] leading-[1.3] font-semibold text-on-surface">
+            <div className="font-headline-md text-[36px] leading-[1.3] font-semibold text-on-surface">
               AutoVerdikt
             </div>
             <div className="flex flex-wrap justify-center gap-6">
