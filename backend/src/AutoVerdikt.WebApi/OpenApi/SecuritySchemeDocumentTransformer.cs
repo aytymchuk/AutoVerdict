@@ -1,7 +1,7 @@
 using AutoVerdikt.WebApi.Authentication.Clerk;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace AutoVerdikt.WebApi.OpenApi;
 

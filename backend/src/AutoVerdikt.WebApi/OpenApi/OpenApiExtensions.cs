@@ -1,4 +1,5 @@
 using AutoVerdikt.WebApi.Authentication.Clerk;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 
 namespace AutoVerdikt.WebApi.OpenApi;
@@ -26,12 +27,11 @@ internal static class OpenApiExtensions
     }
 
     internal static IEndpointRouteBuilder MapScalarUi(
-        this IEndpointRouteBuilder app, IConfiguration configuration)
+        this IEndpointRouteBuilder app)
     {
-        // TODO: Move ClientId to a dedicated Scalar configuration section
-        var clientId = configuration
-            .GetSection(ClerkOptions.SectionName)
-            .GetValue<string>(nameof(ClerkOptions.ClientId)) ?? string.Empty;
+        var clientId = app.ServiceProvider
+            .GetRequiredService<IOptions<ClerkOptions>>()
+            .Value.ClientId ?? string.Empty;
 
         app.MapOpenApi();
 

@@ -70,7 +70,7 @@ app.UseClerkAuthentication();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapScalarUi(builder.Configuration);
+    app.MapScalarUi();
 }
 
 app.MapGet(HealthEndpoint.Route, () => Results.Ok(new { status = HealthEndpoint.Status }))
