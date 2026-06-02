@@ -29,11 +29,11 @@ internal static class OpenApiExtensions
     internal static IEndpointRouteBuilder MapScalarUi(
         this IEndpointRouteBuilder app)
     {
-        var clientId = app.ServiceProvider
-            .GetRequiredService<IOptions<ClerkOptions>>()
-            .Value.ClientId ?? string.Empty;
+        var scalarOpts = app.ServiceProvider
+            .GetRequiredService<IOptions<ScalarUiOptions>>()
+            .Value;
 
-        app.MapOpenApi();
+        app.MapOpenApi().AllowAnonymous();
 
         app.MapScalarApiReference(options =>
         {
@@ -42,7 +42,8 @@ internal static class OpenApiExtensions
                 .AddPreferredSecuritySchemes(SecuritySchemeNames.ClerkOAuth2)
                 .AddAuthorizationCodeFlow(SecuritySchemeNames.ClerkOAuth2, flow =>
                 {
-                    flow.ClientId = clientId;
+                    flow.ClientId = scalarOpts.ClientId;
+                    flow.ClientSecret = scalarOpts.ClientSecret;
                 });
         }).AllowAnonymous(); // Must bypass global auth policy so the UI itself is reachable
 
