@@ -46,7 +46,10 @@ public static class ClerkAuthenticationExtensions
                 if (!string.IsNullOrEmpty(authorizedParty) && authorizedParty != "*")
                     allAuthorizedParties.Add(authorizedParty);
                 foreach (var p in clerkOptions.AdditionalAuthorizedParties)
-                    allAuthorizedParties.Add(p);
+                {
+                    if (!string.IsNullOrWhiteSpace(p))
+                        allAuthorizedParties.Add(p.Trim());
+                }
 
                 if (allAuthorizedParties.Count > 0)
                 {
