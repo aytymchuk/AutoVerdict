@@ -40,9 +40,9 @@ internal static class OpenApiExtensions
             options
                 .WithTitle("AutoVerdikt API")
                 .AddPreferredSecuritySchemes(SecuritySchemeNames.ClerkOAuth2)
-                .AddOAuth2Authentication(SecuritySchemeNames.ClerkOAuth2, oauth2 =>
+                .AddAuthorizationCodeFlow(SecuritySchemeNames.ClerkOAuth2, flow =>
                 {
-                    oauth2.ClientId = clientId;
+                    flow.ClientId = clientId;
                 });
         }).AllowAnonymous(); // Must bypass global auth policy so the UI itself is reachable
 
