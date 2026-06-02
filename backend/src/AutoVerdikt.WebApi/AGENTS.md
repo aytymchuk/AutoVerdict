@@ -14,6 +14,15 @@ The composition root. Wires all layers together via Dependency Injection and exp
 - **DTOs**: Request and response DTOs live in `Endpoints/<Feature>/`. Keep them minimal — never expose internal identifiers (e.g., `AuthId`) in response DTOs.
 - **Endpoint mapping**: Define a `Map*Endpoints(this IEndpointRouteBuilder app)` extension method per feature and call it from `Program.cs`.
 
+## OpenAPI Metadata
+
+- **Document every endpoint** for the generated OpenAPI/Scalar docs by chaining metadata on the `RouteHandlerBuilder`:
+  - `.WithName(...)` — operation id.
+  - `.WithSummary(...)` and `.WithDescription(...)` — human-readable docs.
+  - `.Produces<TDto>(StatusCodes.Status2xx)` for every success response, and `.Produces(StatusCodes.Status4xx)` / `.ProducesValidationProblem()` for every failure the handler can return (e.g. `401`, `404`, `409`, validation `400`).
+- **No magic strings**: summary and description text must be `internal const` in the feature's `*EndpointConstants` class — never inlined. Pass `StatusCodes.*` constants rather than raw numbers.
+- Keep the declared responses in sync with what the handler actually returns; every `Results.*` branch should have a matching `.Produces*` entry.
+
 ## HTTP Request Validation
 
 - Validate all request DTOs with **FluentValidation** (`AbstractValidator<TDto>`).
