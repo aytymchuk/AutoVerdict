@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="AutoVerdikt.WebApi.IntegrationTests" />
+    <InternalsVisibleTo Include="AutoVerdikt.WebApi.Tests" />
   </ItemGroup>
 
   <ItemGroup>
