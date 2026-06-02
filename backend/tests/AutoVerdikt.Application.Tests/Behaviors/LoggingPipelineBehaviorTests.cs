@@ -18,6 +18,13 @@ public class LoggingPipelineBehaviorTests
     private readonly Mock<ILogger<LoggingPipelineBehavior<FailureCommand, Result<string>>>> _failureLogger = new();
     private readonly Mock<ILogger<LoggingPipelineBehavior<ThrowingCommand, Result<string>>>> _throwingLogger = new();
 
+    public LoggingPipelineBehaviorTests()
+    {
+        _successLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        _failureLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        _throwingLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+    }
+
     [Fact]
     public async Task Handle_SuccessfulResult_LogsStartAndCompletion()
     {
