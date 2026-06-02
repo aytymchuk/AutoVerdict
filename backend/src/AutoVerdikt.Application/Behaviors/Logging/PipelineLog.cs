@@ -5,8 +5,8 @@ namespace AutoVerdikt.Application.Behaviors.Logging;
 internal static partial class PipelineLog
 {
     [LoggerMessage(EventId = 1001, Level = LogLevel.Information,
-        Message = "Handling {MessageType}: {MessageJson}")]
-    internal static partial void HandlingMessage(ILogger logger, string messageType, string messageJson);
+        Message = "Handling {MessageType}")]
+    internal static partial void HandlingMessage(ILogger logger, string messageType);
 
     [LoggerMessage(EventId = 1002, Level = LogLevel.Information,
         Message = "Handled {MessageType} in {ElapsedMs}ms")]

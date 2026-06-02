@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using AutoVerdikt.Application.Behaviors.Logging;
 using FluentResults;
 using Mediator;
@@ -18,9 +17,8 @@ public sealed class LoggingPipelineBehavior<TMessage, TResponse>(
         CancellationToken cancellationToken)
     {
         var messageType = typeof(TMessage).Name;
-        var messageJson = JsonSerializer.Serialize(message);
 
-        PipelineLog.HandlingMessage(logger, messageType, messageJson);
+        PipelineLog.HandlingMessage(logger, messageType);
 
         var sw = Stopwatch.StartNew();
         try

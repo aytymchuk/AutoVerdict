@@ -11,7 +11,7 @@ internal static class OpenTelemetryExtensions
 
     internal static WebApplicationBuilder AddObservability(this WebApplicationBuilder builder)
     {
-        var otlpEndpoint = builder.Configuration["OpenTelemetry:Otlp:Endpoint"]
+        var otlpBase = builder.Configuration["OpenTelemetry:Otlp:Endpoint"]
             ?? "http://localhost:5341/ingest/otlp";
 
         var isTesting = builder.Environment.IsEnvironment("Testing");
@@ -28,7 +28,7 @@ internal static class OpenTelemetryExtensions
                 {
                     t.AddOtlpExporter(o =>
                     {
-                        o.Endpoint = new Uri(otlpEndpoint);
+                        o.Endpoint = new Uri($"{otlpBase.TrimEnd('/')}/v1/traces");
                         o.Protocol = OtlpExportProtocol.HttpProtobuf;
                     });
                 }
@@ -49,7 +49,7 @@ internal static class OpenTelemetryExtensions
                 {
                     o.AddOtlpExporter(otlp =>
                     {
-                        otlp.Endpoint = new Uri(otlpEndpoint);
+                        otlp.Endpoint = new Uri($"{otlpBase.TrimEnd('/')}/v1/logs");
                         otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
                     });
                 }

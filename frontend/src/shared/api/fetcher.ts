@@ -25,10 +25,18 @@ export function useApi() {
       if (!response.ok) {
         const contentType = response.headers.get('Content-Type') ?? '';
         if (contentType.includes('application/problem+json')) {
-          const problemDetails = (await response.json()) as ProblemDetails;
+          const rawBody = await response.text();
+          let problemDetails: ProblemDetails | undefined;
+          if (rawBody) {
+            try {
+              problemDetails = JSON.parse(rawBody) as ProblemDetails;
+            } catch {
+              problemDetails = undefined;
+            }
+          }
           throw new ApiError(
             response.status,
-            problemDetails.title ?? `API error: ${response.status}`,
+            problemDetails?.title ?? `API error: ${response.status}`,
             problemDetails
           );
         }

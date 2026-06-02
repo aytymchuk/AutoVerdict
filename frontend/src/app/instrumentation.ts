@@ -3,9 +3,9 @@ import { BatchSpanProcessor, ConsoleSpanExporter } from '@opentelemetry/sdk-trac
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { getWebAutoInstrumentations } from '@opentelemetry/auto-instrumentations-web';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 
-const resource = new Resource({ 'service.name': 'autoverdict-web' });
+const resource = resourceFromAttributes({ 'service.name': 'autoverdict-web' });
 
 // Endpoint is configurable for production deployment; defaults to local Seq instance
 const otlpUrl =
