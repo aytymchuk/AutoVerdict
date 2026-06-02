@@ -6,6 +6,7 @@ using AutoVerdikt.WebApi.Endpoints;
 using AutoVerdikt.WebApi.Endpoints.Users;
 using AutoVerdikt.WebApi.Exceptions;
 using AutoVerdikt.WebApi.Observability;
+using AutoVerdikt.WebApi.OpenApi;
 using FluentValidation;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 
@@ -14,7 +15,7 @@ var isTesting = builder.Environment.IsEnvironment("Testing");
 
 builder.AddObservability();
 
-builder.Services.AddOpenApi();
+builder.Services.AddScalarOpenApi(builder.Configuration);
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
@@ -79,7 +80,7 @@ app.UseClerkAuthentication();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapScalarUi();
 }
 
 app.MapGet(HealthEndpoint.Route, () => Results.Ok(new { status = HealthEndpoint.Status }))

@@ -41,15 +41,24 @@ public static class ClerkAuthenticationExtensions
                     ClockSkew = TimeSpan.FromSeconds(30),
                 };
 
-                // Validate the azp claim (authorized party = your frontend origin)
+                // Validate the azp claim against all accepted authorized parties
+                var allAuthorizedParties = new HashSet<string>(StringComparer.Ordinal);
                 if (!string.IsNullOrEmpty(authorizedParty) && authorizedParty != "*")
+                    allAuthorizedParties.Add(authorizedParty);
+                foreach (var p in clerkOptions.AdditionalAuthorizedParties)
+                {
+                    if (!string.IsNullOrWhiteSpace(p))
+                        allAuthorizedParties.Add(p.Trim());
+                }
+
+                if (allAuthorizedParties.Count > 0)
                 {
                     options.Events = new JwtBearerEvents
                     {
                         OnTokenValidated = context =>
                         {
                             var azp = context.Principal?.FindFirst(AzpClaimType)?.Value;
-                            if (azp is null || azp != authorizedParty)
+                            if (azp is null || !allAuthorizedParties.Contains(azp))
                             {
                                 context.Fail(UnauthorizedPartyErrorMessage);
                             }
