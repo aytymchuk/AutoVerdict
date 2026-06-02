@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { UserStatusContext, type UserStatusContextValue } from '../context/UserStatusContext';
+import { UserStatusContext, type UserStatusContextValue } from '../context/userStatusContext';
 
 export function useUserStatus(): UserStatusContextValue {
   const ctx = useContext(UserStatusContext);

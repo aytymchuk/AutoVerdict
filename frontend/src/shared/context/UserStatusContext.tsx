@@ -1,14 +1,6 @@
-import { createContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import { useAuth } from '@clerk/clerk-react';
-
-export type UserStatus = 'loading' | 'unauthenticated' | 'unregistered' | 'registered';
-
-export interface UserStatusContextValue {
-  status: UserStatus;
-  refetch: () => void;
-}
-
-export const UserStatusContext = createContext<UserStatusContextValue | null>(null);
+import { UserStatusContext, type UserStatus } from './userStatusContext';
 
 export function UserStatusProvider({ children }: { children: ReactNode }) {
   const { getToken, isSignedIn, isLoaded } = useAuth();
