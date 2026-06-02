@@ -21,31 +21,33 @@ internal sealed class SecuritySchemeDocumentTransformer(
 
         var components = document.Components ??= new OpenApiComponents();
 
-        components.SecuritySchemes[SecuritySchemeNames.ClerkOAuth2] = new OpenApiSecurityScheme
+        components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
         {
-            Type = SecuritySchemeType.OAuth2,
-            Flows = new OpenApiOAuthFlows
+            [SecuritySchemeNames.ClerkOAuth2] = new OpenApiSecurityScheme
             {
-                AuthorizationCode = new OpenApiOAuthFlow
+                Type = SecuritySchemeType.OAuth2,
+                Flows = new OpenApiOAuthFlows
                 {
-                    AuthorizationUrl = new Uri(authUrl),
-                    TokenUrl = new Uri(tokenUrl),
-                    Scopes = new Dictionary<string, string>
+                    AuthorizationCode = new OpenApiOAuthFlow
                     {
-                        ["openid"] = "OpenID Connect",
-                        ["profile"] = "User profile",
-                        ["email"] = "Email address"
+                        AuthorizationUrl = new Uri(authUrl),
+                        TokenUrl = new Uri(tokenUrl),
+                        Scopes = new Dictionary<string, string>
+                        {
+                            ["openid"] = "OpenID Connect",
+                            ["profile"] = "User profile",
+                            ["email"] = "Email address"
+                        }
                     }
                 }
+            },
+            [SecuritySchemeNames.Bearer] = new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Description = "Clerk JWT session token (Bearer)"
             }
-        };
-
-        components.SecuritySchemes[SecuritySchemeNames.Bearer] = new OpenApiSecurityScheme
-        {
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT",
-            Description = "Clerk JWT session token (Bearer)"
         };
 
         return Task.CompletedTask;

@@ -20,11 +20,11 @@ internal sealed class SecurityRequirementOperationTransformer : IOpenApiOperatio
             [
                 new OpenApiSecurityRequirement
                 {
-                    [new OpenApiSecurityScheme { Reference = new OpenApiReference { Id = SecuritySchemeNames.ClerkOAuth2, Type = ReferenceType.SecurityScheme } }] = []
+                    [new OpenApiSecuritySchemeReference(SecuritySchemeNames.ClerkOAuth2, context.Document)] = []
                 },
                 new OpenApiSecurityRequirement
                 {
-                    [new OpenApiSecurityScheme { Reference = new OpenApiReference { Id = SecuritySchemeNames.Bearer, Type = ReferenceType.SecurityScheme } }] = []
+                    [new OpenApiSecuritySchemeReference(SecuritySchemeNames.Bearer, context.Document)] = []
                 }
             ];
         }
