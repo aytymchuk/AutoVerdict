@@ -16,15 +16,13 @@ internal sealed class SecurityRequirementOperationTransformer : IOpenApiOperatio
 
         if (!allowAnonymous)
         {
+            // Only ClerkOAuth2 — Scalar stores the access token on the OAuth flow.
+            // Listing Bearer as an OR alternative makes Scalar pick it and omit the token.
             operation.Security =
             [
                 new OpenApiSecurityRequirement
                 {
                     [new OpenApiSecuritySchemeReference(SecuritySchemeNames.ClerkOAuth2, context.Document)] = []
-                },
-                new OpenApiSecurityRequirement
-                {
-                    [new OpenApiSecuritySchemeReference(SecuritySchemeNames.Bearer, context.Document)] = []
                 }
             ];
         }

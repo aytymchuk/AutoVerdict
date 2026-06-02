@@ -6,6 +6,7 @@ public class ScalarUiOptions
 
     public string ClientId { get; set; } = string.Empty;
     public string? ClientSecret { get; set; }
+    public string? RedirectUri { get; set; }
 
     // Override defaults when Clerk's URL pattern differs from {Authority}/oauth/*
     public string? AuthorizationUrl { get; set; }

@@ -24,10 +24,16 @@ internal static class UserEndpoints
                 }
                 var u = result.Value;
                 return Results.Created(
-                    $"{UserEndpointConstants.RegisterRoute}/{u.Id}",
+                    UserEndpointConstants.GetCurrentRoute,
                     new UserAccountDto(u.Id, u.Name, u.Email, u.RegisteredAt));
             })
             .WithName(UserEndpointConstants.RegisterName)
+            .WithSummary(UserEndpointConstants.RegisterSummary)
+            .WithDescription(UserEndpointConstants.RegisterDescription)
+            .Produces<UserAccountDto>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status409Conflict)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesValidationProblem()
             .AddFluentValidationAutoValidation();
         // No AllowAnonymous — global fallback policy (RequireAuthenticatedUser) applies
 
@@ -40,7 +46,12 @@ internal static class UserEndpoints
 
                 return Results.Ok(new UserAccountDto(user.Id, user.Name, user.Email, user.RegisteredAt));
             })
-            .WithName(UserEndpointConstants.GetCurrentName);
+            .WithName(UserEndpointConstants.GetCurrentName)
+            .WithSummary(UserEndpointConstants.GetCurrentSummary)
+            .WithDescription(UserEndpointConstants.GetCurrentDescription)
+            .Produces<UserAccountDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized);
         // No AllowAnonymous — global fallback policy (RequireAuthenticatedUser) applies
 
         return app;

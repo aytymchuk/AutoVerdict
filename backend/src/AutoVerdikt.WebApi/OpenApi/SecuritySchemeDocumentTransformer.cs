@@ -32,12 +32,7 @@ internal sealed class SecuritySchemeDocumentTransformer(
                     {
                         AuthorizationUrl = new Uri(authUrl),
                         TokenUrl = new Uri(tokenUrl),
-                        Scopes = new Dictionary<string, string>
-                        {
-                            ["openid"] = "OpenID Connect",
-                            ["profile"] = "User profile",
-                            ["email"] = "Email address"
-                        }
+                        Scopes = new Dictionary<string, string>(ClerkScopes.Definitions)
                     }
                 }
             },

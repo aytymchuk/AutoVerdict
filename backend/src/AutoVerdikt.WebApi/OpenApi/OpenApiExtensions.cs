@@ -39,11 +39,22 @@ internal static class OpenApiExtensions
         {
             options
                 .WithTitle("AutoVerdikt API")
+                .EnablePersistentAuthentication()
                 .AddPreferredSecuritySchemes(SecuritySchemeNames.ClerkOAuth2)
                 .AddAuthorizationCodeFlow(SecuritySchemeNames.ClerkOAuth2, flow =>
                 {
                     flow.ClientId = scalarOpts.ClientId;
                     flow.ClientSecret = scalarOpts.ClientSecret;
+                    flow.WithPkce(Pkce.Sha256);
+                    flow.WithSelectedScopes(ClerkScopes.All);
+
+                    if (!string.IsNullOrEmpty(scalarOpts.AuthorizationUrl))
+                        flow.WithAuthorizationUrl(scalarOpts.AuthorizationUrl);
+                    if (!string.IsNullOrEmpty(scalarOpts.TokenUrl))
+                        flow.WithTokenUrl(scalarOpts.TokenUrl);
+                    // redirect_uri must be sent in the token exchange to match the authorization request.
+                    if (!string.IsNullOrEmpty(scalarOpts.RedirectUri))
+                        flow.WithRedirectUri(scalarOpts.RedirectUri);
                 });
         }).AllowAnonymous(); // Must bypass global auth policy so the UI itself is reachable
 
