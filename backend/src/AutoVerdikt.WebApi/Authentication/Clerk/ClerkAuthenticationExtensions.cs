@@ -1,5 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AutoVerdikt.WebApi.Authentication.Clerk;
@@ -8,6 +10,7 @@ public static class ClerkAuthenticationExtensions
 {
     private const string AzpClaimType = "azp";
     private const string UnauthorizedPartyErrorMessage = "Unauthorized party.";
+
     public static IServiceCollection AddClerkAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var clerkOptions = configuration.GetSection(ClerkOptions.SectionName).Get<ClerkOptions>() ?? new ClerkOptions();
@@ -51,30 +54,61 @@ public static class ClerkAuthenticationExtensions
                         allAuthorizedParties.Add(p.Trim());
                 }
 
-                if (allAuthorizedParties.Count > 0)
+                options.Events = new JwtBearerEvents
                 {
-                    options.Events = new JwtBearerEvents
+                    OnMessageReceived = context =>
                     {
-                        OnTokenValidated = context =>
+                        var logger = GetLogger(context.HttpContext.RequestServices);
+                        var hasHeader = context.Request.Headers.ContainsKey("Authorization");
+                        ClerkAuthLog.JwtReceived(logger, hasHeader);
+                        return Task.CompletedTask;
+                    },
+
+                    OnAuthenticationFailed = context =>
+                    {
+                        var logger = GetLogger(context.HttpContext.RequestServices);
+                        ClerkAuthLog.JwtAuthenticationFailed(logger, context.Exception.Message);
+                        return Task.CompletedTask;
+                    },
+
+                    OnTokenValidated = context =>
+                    {
+                        if (allAuthorizedParties.Count > 0)
                         {
                             var azp = context.Principal?.FindFirst(AzpClaimType)?.Value;
                             if (azp is null || !allAuthorizedParties.Contains(azp))
                             {
+                                var logger = GetLogger(context.HttpContext.RequestServices);
+                                ClerkAuthLog.JwtAzpRejected(logger, azp);
                                 context.Fail(UnauthorizedPartyErrorMessage);
                             }
-                            return Task.CompletedTask;
                         }
-                    };
-                }
+
+                        return Task.CompletedTask;
+                    },
+
+                    OnChallenge = context =>
+                    {
+                        var logger = GetLogger(context.HttpContext.RequestServices);
+                        ClerkAuthLog.JwtChallenge(
+                            logger,
+                            context.Request.Path,
+                            context.AuthenticateFailure?.Message ?? "none");
+                        return Task.CompletedTask;
+                    },
+                };
             });
 
         services.AddAuthorizationBuilder()
             .SetFallbackPolicy(new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .Build());
-        
+
         return services;
     }
+
+    private static ILogger GetLogger(IServiceProvider services) =>
+        services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(ClerkAuthenticationExtensions));
 
     public static IApplicationBuilder UseClerkAuthentication(this IApplicationBuilder app)
     {

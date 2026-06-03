@@ -65,43 +65,61 @@ cp .env.example .env
 # Fill in VITE_CLERK_PUBLISHABLE_KEY and Clerk__ backend vars
 ```
 
-### 2. Run via Docker (recommended)
+### 2. Local development (recommended — frontend HMR)
 
-Starts all services: API, frontend, MongoDB, Azurite, Seq.
+Starts API + databases in Docker, then Vite on your machine with hot reload:
 
 ```bash
-make up
-# or: docker compose up -d
+make dev
 ```
 
 | Service | URL |
 |---|---|
-| Frontend | http://localhost:3000 |
+| Frontend (Vite) | http://localhost:5173 |
 | API | http://localhost:5065 |
 | Seq (logs) | http://localhost:5341 |
 | MongoDB | mongodb://localhost:27017 |
 | Azurite Blob | http://localhost:10000 |
 
-### 3. Run services individually (local dev)
+Set `Clerk__AuthorizedParty=http://localhost:5173` in `.env` (default in `.env.example`). Vite reads `VITE_*` vars from the repo-root `.env`.
 
-**Frontend** (Vite dev server with HMR):
+**API + infra only** (start Vite yourself later):
+
 ```bash
+make up
 cd frontend && pnpm dev
 ```
+
+### 3. Full stack in Docker (no HMR)
+
+Production-style frontend container on port 3000:
+
+```bash
+make up-prod
+# or: docker compose --profile production up -d --build
+```
+
+| Service | URL |
+|---|---|
+| Frontend (static) | http://localhost:3000 |
+
+Use `Clerk__AuthorizedParty=http://localhost:3000` when using this mode.
+
+### 4. Run services individually on the host
 
 **Backend** (.NET hot reload):
 ```bash
 cd backend && dotnet run --project src/AutoVerdikt.WebApi
 ```
 
-> When running the backend locally against `pnpm dev`, set `Clerk__AuthorizedParty=http://localhost:5173` in your shell or `.env`.
-
 ## Development Commands
 
 ```bash
-make up              # Start all Docker services (detached)
+make dev             # Docker API + infra, then Vite with HMR (recommended)
+make up              # API + infra only (no web container)
+make up-prod         # Full stack including production web on :3000
 make down            # Stop all Docker services
-make run             # Run via local orchestration script
+make run             # Start API + infra via orchestration script
 make clean           # Tear down containers and volumes
 make test-backend    # Run all backend test projects
 ```

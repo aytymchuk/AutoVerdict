@@ -13,7 +13,7 @@ interface Props {
 
 export function AppClerkProvider({ children }: Props) {
   return (
-    <BaseClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <BaseClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
       {children}
     </BaseClerkProvider>
   );

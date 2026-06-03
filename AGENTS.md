@@ -12,14 +12,16 @@ AutoVerdikt is an AI investigator for used car buyers in Poland. It cross-verifi
 - scripts/    Local automation scripts
 
 ## Core Rules & Policies (Non-Negotiable)
-1. **Language Policy:** All user-facing text defaults to English. Supported: en, uk, pl. Russian is NEVER supported (no text, comments, or translation keys). If browser language is 'ru', fallback to 'en'.
+1. **Language Policy:** All user-facing text defaults to English. Supported: en, uk, pl. Russian is NEVER supported (no text, comments, or translation keys). If browser language is 'ru', use Ukrainian (uk).
 2. **AI Grounding:** Every flag or claim in a generated report must cite its source (e.g., "CEPiK, p. 2"). No citation = no flag. No AI speculation.
 3. **Secrets:** Never hardcode keys. Use `.env.local` for local development and Azure Key Vault for production.
 
 ## Local Development Stack
-- **Frontend:** Run `cd frontend && pnpm dev` (Vite dev server).
-- **Backend:** Run `cd backend && dotnet run` (.NET 10 Minimal API).
-- **Databases:** MongoDB, Azurite, Seq are pre-configured in `docker-compose.yml`. Use `docker-compose up -d` to start the local stack.
+- **Recommended (frontend HMR):** `make dev` — starts API + MongoDB + Azurite + Seq in Docker, then Vite on http://localhost:5173.
+- **Frontend only:** `cd frontend && pnpm dev` (requires API already running via `make up` or `make run`).
+- **Backend on host:** `cd backend && dotnet run` (.NET 10 Minimal API) instead of Docker API when needed.
+- **Full Docker UI:** `make up-prod` — includes the production `web` image on http://localhost:3000 (no HMR; rebuild to see changes).
+- **Infra only:** `make up` or `docker compose up -d` (excludes `web`; it uses the `production` compose profile).
 
 ## Tooling Reference
 - **Code Formatting & Linting:** Run `pnpm lint` in the `frontend/` directory to lint and format code.
