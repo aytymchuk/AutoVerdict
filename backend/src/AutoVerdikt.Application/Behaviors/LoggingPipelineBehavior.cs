@@ -18,31 +18,44 @@ public sealed class LoggingPipelineBehavior<TMessage, TResponse>(
     {
         var messageType = typeof(TMessage).Name;
 
+        using var activity = MediatorPipelineActivity.Source.StartActivity(messageType, ActivityKind.Internal);
+        activity?.SetTag(MediatorPipelineActivity.Tags.MessageType, typeof(TMessage).FullName ?? messageType);
+
         PipelineLog.HandlingMessage(logger, messageType);
 
-        var sw = Stopwatch.StartNew();
         try
         {
             var response = await next(message, cancellationToken);
-            sw.Stop();
 
             if (response is IResultBase { IsFailed: true } failedResult)
             {
                 var errors = string.Join("; ", failedResult.Errors.Select(e => e.Message));
-                PipelineLog.HandlerReturnedFailure(logger, messageType, sw.ElapsedMilliseconds, errors);
+                activity?.SetTag(MediatorPipelineActivity.Tags.Errors, errors);
+                activity?.SetStatus(ActivityStatusCode.Error, errors);
+                PipelineLog.HandlerReturnedFailure(logger, messageType, errors);
             }
             else
             {
-                PipelineLog.HandledMessage(logger, messageType, sw.ElapsedMilliseconds);
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                PipelineLog.HandledMessage(logger, messageType);
             }
 
             return response;
         }
         catch (Exception ex)
         {
-            sw.Stop();
-            PipelineLog.HandlerException(logger, messageType, sw.ElapsedMilliseconds, ex);
+            activity?.AddException(ex);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            PipelineLog.HandlerException(logger, messageType, ex);
             throw;
+        }
+        finally
+        {
+            if (activity is not null)
+            {
+                activity.Stop();
+                activity.SetTag(MediatorPipelineActivity.Tags.DurationMs, activity.Duration.TotalMilliseconds);
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using AutoVerdikt.Application.Behaviors;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
@@ -23,6 +24,7 @@ internal static class OpenTelemetryExtensions
             {
                 t.AddAspNetCoreInstrumentation();
                 t.AddHttpClientInstrumentation();
+                t.AddSource(MediatorPipelineActivity.ActivitySourceName);
 
                 if (!isTesting)
                 {

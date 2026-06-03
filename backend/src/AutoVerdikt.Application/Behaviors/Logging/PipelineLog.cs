@@ -9,14 +9,14 @@ internal static partial class PipelineLog
     internal static partial void HandlingMessage(ILogger logger, string messageType);
 
     [LoggerMessage(EventId = 1002, Level = LogLevel.Information,
-        Message = "Handled {MessageType} in {ElapsedMs}ms")]
-    internal static partial void HandledMessage(ILogger logger, string messageType, long elapsedMs);
+        Message = "Handled {MessageType}")]
+    internal static partial void HandledMessage(ILogger logger, string messageType);
 
     [LoggerMessage(EventId = 1003, Level = LogLevel.Warning,
-        Message = "Handler for {MessageType} returned failure after {ElapsedMs}ms: {Errors}")]
-    internal static partial void HandlerReturnedFailure(ILogger logger, string messageType, long elapsedMs, string errors);
+        Message = "Handler for {MessageType} returned failure: {Errors}")]
+    internal static partial void HandlerReturnedFailure(ILogger logger, string messageType, string errors);
 
     [LoggerMessage(EventId = 1004, Level = LogLevel.Error,
-        Message = "Unhandled exception in handler for {MessageType} after {ElapsedMs}ms")]
-    internal static partial void HandlerException(ILogger logger, string messageType, long elapsedMs, Exception exception);
+        Message = "Unhandled exception in handler for {MessageType}")]
+    internal static partial void HandlerException(ILogger logger, string messageType, Exception exception);
 }
