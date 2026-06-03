@@ -26,9 +26,10 @@ internal static class UserEndpoints
             .WithSummary(UserEndpointConstants.RegisterSummary)
             .WithDescription(UserEndpointConstants.RegisterDescription)
             .Produces<UserAccountDto>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status409Conflict)
-            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
             .AddFluentValidationAutoValidation();
         // No AllowAnonymous — global fallback policy (RequireAuthenticatedUser) applies
 
