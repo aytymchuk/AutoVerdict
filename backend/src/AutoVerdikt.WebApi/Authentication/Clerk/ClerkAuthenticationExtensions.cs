@@ -18,7 +18,6 @@ public static class ClerkAuthenticationExtensions
         var clerkAuthority = clerkOptions.Authority;
         ArgumentException.ThrowIfNullOrEmpty(clerkAuthority);
         var authorizedParty = clerkOptions.AuthorizedParty;
-        var validateAuthorizedParty = !string.IsNullOrEmpty(authorizedParty) && authorizedParty != "*";
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -46,6 +45,16 @@ public static class ClerkAuthenticationExtensions
                     ClockSkew = TimeSpan.FromSeconds(30),
                 };
 
+                // Validate the azp claim against all accepted authorized parties
+                var allAuthorizedParties = new HashSet<string>(StringComparer.Ordinal);
+                if (!string.IsNullOrEmpty(authorizedParty) && authorizedParty != "*")
+                    allAuthorizedParties.Add(authorizedParty);
+                foreach (var p in clerkOptions.AdditionalAuthorizedParties)
+                {
+                    if (!string.IsNullOrWhiteSpace(p))
+                        allAuthorizedParties.Add(p.Trim());
+                }
+
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
@@ -71,19 +80,14 @@ public static class ClerkAuthenticationExtensions
                     {
                         var logger = GetAuthLogger(context.HttpContext.RequestServices);
 
-                        if (validateAuthorizedParty)
+                        if (allAuthorizedParties.Count > 0)
                         {
                             var azp = context.Principal?.FindFirst(AzpClaimType)?.Value;
-                            logger.LogDebug(
-                                "JWT azp claim = '{Azp}', expected = '{Expected}'",
-                                azp,
-                                authorizedParty);
-                            if (azp is null || azp != authorizedParty)
+                            if (azp is null || !allAuthorizedParties.Contains(azp))
                             {
                                 logger.LogWarning(
-                                    "JWT rejected: azp '{Azp}' does not match AuthorizedParty '{Expected}'",
-                                    azp,
-                                    authorizedParty);
+                                    "JWT rejected: azp '{Azp}' does not match authorized parties",
+                                    azp);
                                 context.Fail(UnauthorizedPartyErrorMessage);
                             }
                         }
