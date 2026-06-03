@@ -6,7 +6,7 @@ import { AuthPage } from '../pages/AuthPage';
 import { AuthCallbackPage } from '../pages/AuthCallbackPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { HomePage } from '../pages/HomePage';
-import { I18nProvider } from '../shared/lib/i18n';
+import { I18nProvider } from '../shared/lib/i18n/index';
 import { UserStatusProvider } from '../shared/context/userStatusProvider';
 import { ProtectedRoute, RegisterRoute } from '../shared/components/ProtectedRoute';
 
