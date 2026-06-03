@@ -1,6 +1,6 @@
-using AutoVerdikt.Application.Users.Errors;
 using AutoVerdikt.Application.Users.GetCurrent;
 using AutoVerdikt.Application.Users.Register;
+using AutoVerdikt.WebApi.Extensions;
 using Mediator;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 
@@ -15,13 +15,8 @@ internal static class UserEndpoints
             {
                 var result = await mediator.Send(new UserRegisterCommand(dto.Name, dto.Email), ct);
                 if (result.IsFailed)
-                {
-                    var alreadyRegistered = result.Errors.OfType<UserAlreadyRegisteredError>().FirstOrDefault();
-                    if (alreadyRegistered is not null)
-                        return Results.Conflict(new { error = alreadyRegistered.Message });
+                    return result.ToProblemResult();
 
-                    return Results.BadRequest(result.Errors.Select(e => e.Message));
-                }
                 var u = result.Value;
                 return Results.Created(
                     UserEndpointConstants.GetCurrentRoute,
@@ -31,9 +26,10 @@ internal static class UserEndpoints
             .WithSummary(UserEndpointConstants.RegisterSummary)
             .WithDescription(UserEndpointConstants.RegisterDescription)
             .Produces<UserAccountDto>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status409Conflict)
-            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
             .AddFluentValidationAutoValidation();
         // No AllowAnonymous — global fallback policy (RequireAuthenticatedUser) applies
 

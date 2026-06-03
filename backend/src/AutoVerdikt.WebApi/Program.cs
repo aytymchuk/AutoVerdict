@@ -1,8 +1,11 @@
 using AutoVerdikt.Application.Abstractions;
+using AutoVerdikt.Application.Behaviors;
 using AutoVerdikt.Store;
 using AutoVerdikt.WebApi.Authentication.Clerk;
 using AutoVerdikt.WebApi.Endpoints;
 using AutoVerdikt.WebApi.Endpoints.Users;
+using AutoVerdikt.WebApi.Exceptions;
+using AutoVerdikt.WebApi.Observability;
 using AutoVerdikt.WebApi.OpenApi;
 using FluentValidation;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
@@ -10,7 +13,11 @@ using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 var isTesting = builder.Environment.IsEnvironment("Testing");
 
+builder.AddObservability();
+
 builder.Services.AddScalarOpenApi(builder.Configuration);
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 if (!isTesting)
 {
@@ -53,6 +60,7 @@ builder.Services.AddScoped<ICurrentUserContext, ClerkUserContext>();
 builder.Services.AddMediator(options =>
 {
     options.ServiceLifetime = ServiceLifetime.Scoped;
+    options.PipelineBehaviors = [typeof(LoggingPipelineBehavior<,>)];
 });
 
 builder.Services.AddStore(builder.Configuration);
@@ -60,6 +68,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddFluentValidationAutoValidation();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (!app.Environment.IsDevelopment())
 {

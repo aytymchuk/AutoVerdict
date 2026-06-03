@@ -9,6 +9,8 @@ services:
       - .env
     environment:
       MongoDb__ConnectionString: mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-example}@mongodb:27017/?authSource=admin
+      # Inside the compose network Seq is reachable by service name, not localhost.
+      OpenTelemetry__Otlp__Endpoint: http://seq:80/ingest/otlp
     depends_on:
       - mongodb
       - azurite
@@ -61,6 +63,10 @@ services:
       - "5341:80"
     env_file:
       - .env
+    environment:
+      # Allow the browser-side OTLP trace exporter (frontend) to post cross-origin.
+      # 5173 = `pnpm dev`/`make dev`, 3000 = dockerized web (`make up-prod`).
+      SEQ_API_CORSALLOWEDORIGINS: "http://localhost:5173,http://localhost:3000"
     volumes:
       - seq_data:/data
 

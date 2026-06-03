@@ -8,6 +8,17 @@ The core business-logic layer. All outer layers depend on it; it depends only on
 - **Define abstractions**: Declare repository and service interfaces here (e.g., `IUserRepository`). Implementations live in the outer layers.
 - **Commands & Queries**: Use `Mediator.Abstractions` (`IRequest<T>`, `IRequestHandler<TRequest, TResponse>`). Commands and their handlers live together in `<Feature>/` sub-folders (e.g., `Users/Register/`).
 
+## Logging & Observability
+
+- **Pipeline logging and tracing**: `Behaviors/LoggingPipelineBehavior.cs` logs and traces every command and query (start, success, failure, exception) via `PipelineLog` and an OTEL `ActivitySource`. Do not inject `ILogger` into handlers or add per-handler start/complete logs for routine execution.
+- **Handler-specific logs (edge cases)**: When a handler needs an extra log for a specific scenario, add a `[LoggerMessage]` method to `Behaviors/Logging/PipelineLog.cs` (next `EventId`, `internal static partial void`) and call it from the handler with the injected `ILogger<THandler>`.
+
+```csharp
+[LoggerMessage(EventId = 1005, Level = LogLevel.Information,
+    Message = "User {UserId} upgraded to premium")]
+internal static partial void UserUpgradedToPremium(ILogger logger, string userId);
+```
+
 ## Error Handling
 
 Return `Result` or `Result<T>` (FluentResults) from every operation that can fail in an expected way. Never throw or declare custom `Exception` subclasses for business failures.
