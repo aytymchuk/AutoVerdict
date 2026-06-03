@@ -8,7 +8,6 @@ namespace AutoVerdikt.WebApi.Authentication.Clerk;
 
 public static class ClerkAuthenticationExtensions
 {
-    private const string AuthLoggerName = "AutoVerdikt.Auth.Clerk";
     private const string AzpClaimType = "azp";
     private const string UnauthorizedPartyErrorMessage = "Unauthorized party.";
 
@@ -59,35 +58,28 @@ public static class ClerkAuthenticationExtensions
                 {
                     OnMessageReceived = context =>
                     {
-                        var logger = GetAuthLogger(context.HttpContext.RequestServices);
+                        var logger = GetLogger(context.HttpContext.RequestServices);
                         var hasHeader = context.Request.Headers.ContainsKey("Authorization");
-                        logger.LogDebug(
-                            "JWT OnMessageReceived: Authorization header present = {HasHeader}",
-                            hasHeader);
+                        ClerkAuthLog.JwtReceived(logger, hasHeader);
                         return Task.CompletedTask;
                     },
 
                     OnAuthenticationFailed = context =>
                     {
-                        var logger = GetAuthLogger(context.HttpContext.RequestServices);
-                        logger.LogWarning(
-                            "JWT authentication failed: {Error}",
-                            context.Exception.Message);
+                        var logger = GetLogger(context.HttpContext.RequestServices);
+                        ClerkAuthLog.JwtAuthenticationFailed(logger, context.Exception.Message);
                         return Task.CompletedTask;
                     },
 
                     OnTokenValidated = context =>
                     {
-                        var logger = GetAuthLogger(context.HttpContext.RequestServices);
-
                         if (allAuthorizedParties.Count > 0)
                         {
                             var azp = context.Principal?.FindFirst(AzpClaimType)?.Value;
                             if (azp is null || !allAuthorizedParties.Contains(azp))
                             {
-                                logger.LogWarning(
-                                    "JWT rejected: azp '{Azp}' does not match authorized parties",
-                                    azp);
+                                var logger = GetLogger(context.HttpContext.RequestServices);
+                                ClerkAuthLog.JwtAzpRejected(logger, azp);
                                 context.Fail(UnauthorizedPartyErrorMessage);
                             }
                         }
@@ -97,9 +89,9 @@ public static class ClerkAuthenticationExtensions
 
                     OnChallenge = context =>
                     {
-                        var logger = GetAuthLogger(context.HttpContext.RequestServices);
-                        logger.LogWarning(
-                            "JWT challenge issued for {Path}: AuthenticateFailure = {Failure}",
+                        var logger = GetLogger(context.HttpContext.RequestServices);
+                        ClerkAuthLog.JwtChallenge(
+                            logger,
                             context.Request.Path,
                             context.AuthenticateFailure?.Message ?? "none");
                         return Task.CompletedTask;
@@ -115,6 +107,9 @@ public static class ClerkAuthenticationExtensions
         return services;
     }
 
+    private static ILogger GetLogger(IServiceProvider services) =>
+        services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(ClerkAuthenticationExtensions));
+
     public static IApplicationBuilder UseClerkAuthentication(this IApplicationBuilder app)
     {
         app.UseAuthentication();    // Must come before UseAuthorization
@@ -122,7 +117,4 @@ public static class ClerkAuthenticationExtensions
 
         return app;
     }
-
-    private static ILogger GetAuthLogger(IServiceProvider requestServices) =>
-        requestServices.GetRequiredService<ILoggerFactory>().CreateLogger(AuthLoggerName);
 }
