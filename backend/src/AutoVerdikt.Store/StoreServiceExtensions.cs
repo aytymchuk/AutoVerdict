@@ -1,6 +1,9 @@
 using AutoVerdikt.Application.Users;
+using AutoVerdikt.Application.Whitelist;
 using AutoVerdikt.Store.Configuration;
 using AutoVerdikt.Store.Users;
+using AutoVerdikt.Store.Waitlist;
+using AutoVerdikt.Store.Whitelist;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -35,8 +38,13 @@ public static class StoreServiceExtensions
         services.AddSingleton<IMongoCollection<UserDocument>>(sp =>
             sp.GetRequiredService<IMongoDatabase>().GetCollection<UserDocument>("users"));
 
+        services.AddSingleton<IMongoCollection<WaitlistRequestDocument>>(sp =>
+            sp.GetRequiredService<IMongoDatabase>().GetCollection<WaitlistRequestDocument>("waitlist_requests"));
+
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddHostedService<MongoDbInitializer>();
+        services.AddScoped<IWhitelistRepository, WhitelistRepository>();
+        services.AddScoped<IWaitlistRequestRepository, WaitlistRequestRepository>();
+        services.AddHostedService<WhitelistMongoDbInitializer>();
 
         return services;
     }

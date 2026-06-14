@@ -10,13 +10,14 @@ export function LoadingScreen() {
   );
 }
 
-/** Requires auth + completed registration. */
+/** Requires auth + completed registration + whitelist access. */
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { status } = useUserStatus();
 
   if (status === 'loading') return <LoadingScreen />;
   if (status === 'unauthenticated') return <Navigate to="/" replace />;
   if (status === 'unregistered') return <Navigate to="/register" replace />;
+  if (status === 'not_whitelisted') return <Navigate to="/waiting" replace />;
 
   return <>{children}</>;
 }
@@ -27,6 +28,19 @@ export function RegisterRoute({ children }: { children: ReactNode }) {
 
   if (status === 'loading') return <LoadingScreen />;
   if (status === 'unauthenticated') return <Navigate to="/auth" replace />;
+  if (status === 'registered') return <Navigate to="/home" replace />;
+  if (status === 'not_whitelisted') return <Navigate to="/waiting" replace />;
+
+  return <>{children}</>;
+}
+
+/** Waiting page — authenticated users without whitelist access. */
+export function WhitelistRoute({ children }: { children: ReactNode }) {
+  const { status } = useUserStatus();
+
+  if (status === 'loading') return <LoadingScreen />;
+  if (status === 'unauthenticated') return <Navigate to="/auth" replace />;
+  if (status === 'unregistered') return <Navigate to="/register" replace />;
   if (status === 'registered') return <Navigate to="/home" replace />;
 
   return <>{children}</>;

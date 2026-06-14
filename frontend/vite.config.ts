@@ -11,7 +11,11 @@ export default defineConfig({
   envDir: repoRoot,
   plugins: [react(), tailwindcss()],
   server: {
+    host: true,
     port: 5173,
+    watch: {
+      usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_API_TARGET ?? 'http://localhost:5065',

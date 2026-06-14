@@ -2,11 +2,15 @@ import { useAuth } from '@clerk/clerk-react';
 import { useMemo } from 'react';
 import { ApiClient } from './client';
 
+export type WhitelistStatus = 'none' | 'requested' | 'approved' | 'declined';
+
 export interface UserAccountDto {
   id: string;
   name: string;
   email: string;
   registeredAt: string;
+  isWhitelisted: boolean;
+  whitelistStatus: WhitelistStatus;
 }
 
 export interface IUsersApi {

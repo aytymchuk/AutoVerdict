@@ -20,4 +20,12 @@ internal sealed class UserDocument
 
     [BsonElement("registeredAt")]
     public DateTime RegisteredAt { get; init; }
+
+    [BsonElement("whitelistStatus")]
+    [BsonIgnoreIfNull]
+    public string? WhitelistStatus { get; init; }
+
+    [BsonElement("waitlistStatus")]
+    [BsonIgnoreIfNull]
+    public string? LegacyWaitlistStatus { get; init; }
 }

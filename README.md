@@ -67,10 +67,11 @@ cp .env.example .env
 
 ### 2. Local development (recommended — frontend HMR)
 
-Starts API + databases in Docker, then Vite on your machine with hot reload:
+Starts the full dev stack in Docker (API, databases, Vite with HMR):
 
 ```bash
 make dev
+# or: make up
 ```
 
 | Service | URL |
@@ -81,31 +82,15 @@ make dev
 | MongoDB | mongodb://localhost:27017 |
 | Azurite Blob | http://localhost:10000 |
 
-Set `Clerk__AuthorizedParty=http://localhost:5173` in `.env` (default in `.env.example`). Vite reads `VITE_*` vars from the repo-root `.env`.
+Set `Clerk__AuthorizedParty=http://localhost:5173` and `VITE_CLERK_PUBLISHABLE_KEY` in `.env` (see `.env.example`).
 
-**API + infra only** (start Vite yourself later):
-
-```bash
-make up
-cd frontend && pnpm dev
-```
-
-### 3. Full stack in Docker (no HMR)
-
-Production-style frontend container on port 3000:
+**Frontend on host** (API already running via `make up`):
 
 ```bash
-make up-prod
-# or: docker compose --profile production up -d --build
+cd frontend && VITE_API_TARGET=http://localhost:5065 pnpm dev
 ```
 
-| Service | URL |
-|---|---|
-| Frontend (static) | http://localhost:3000 |
-
-Use `Clerk__AuthorizedParty=http://localhost:3000` when using this mode.
-
-### 4. Run services individually on the host
+### 3. Run services individually on the host
 
 **Backend** (.NET hot reload):
 ```bash
@@ -115,9 +100,8 @@ cd backend && dotnet run --project src/AutoVerdikt.WebApi
 ## Development Commands
 
 ```bash
-make dev             # Docker API + infra, then Vite with HMR (recommended)
-make up              # API + infra only (no web container)
-make up-prod         # Full stack including production web on :3000
+make dev             # Full dev stack in Docker (recommended)
+make up              # Same as make dev
 make down            # Stop all Docker services
 make run             # Start API + infra via orchestration script
 make clean           # Tear down containers and volumes
