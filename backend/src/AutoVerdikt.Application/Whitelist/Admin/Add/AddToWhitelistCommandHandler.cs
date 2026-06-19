@@ -1,4 +1,3 @@
-using AutoVerdikt.Application.Whitelist;
 using FluentResults;
 using Mediator;
 

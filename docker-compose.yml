@@ -8,6 +8,10 @@ services:
     env_file:
       - .env
     environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      # Clerk JWT validation — issuer and allowed frontend origin (azp / CORS).
+      Clerk__Authority: ${Clerk__Authority:-}
+      Clerk__AuthorizedParty: ${Clerk__AuthorizedParty:-http://localhost:5173}
       MongoDb__ConnectionString: mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-example}@mongodb:27017/?authSource=admin
       # Inside the compose network Seq is reachable by service name, not localhost.
       OpenTelemetry__Otlp__Endpoint: http://seq:80/ingest/otlp
@@ -60,7 +64,6 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-example}
     volumes:
       - mongodb_data:/data/db
-
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     ports:

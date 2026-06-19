@@ -3,7 +3,6 @@ using AutoFixture;
 using AutoVerdikt.WebApi.Endpoints.Admin;
 using AutoVerdikt.WebApi.Endpoints.Product;
 using AutoVerdikt.WebApi.Endpoints.Users;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace AutoVerdikt.WebApi.IntegrationTests.Infrastructure;
 

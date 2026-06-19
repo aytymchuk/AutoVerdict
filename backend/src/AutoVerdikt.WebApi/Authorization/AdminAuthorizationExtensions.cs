@@ -7,7 +7,7 @@ internal static class AdminAuthorizationExtensions
     internal static IServiceCollection AddAdminAuthorization(this IServiceCollection services)
     {
         services.AddAuthorizationBuilder()
-            .AddPolicy(AdminPolicyName, policy => policy.RequireRole("admin"));
+            .AddPolicy(AdminPolicyName, policy => policy.RequireRole("admin", "org:admin"));
 
         return services;
     }

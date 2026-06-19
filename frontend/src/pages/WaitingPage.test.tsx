@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
 import { WaitingPage } from './WaitingPage';
 import { waiting } from '../shared/lib/i18n/locales/waiting';
+import { common } from '../shared/lib/i18n/locales/common';
 import type { Language } from '../shared/lib/i18n/types';
 
 let mockStatus = 'not_whitelisted';
@@ -11,13 +12,14 @@ let mockEmail: string | null = 'user@example.com';
 let mockWhitelistStatus: 'none' | 'requested' | 'approved' | 'declined' = 'none';
 let mockLanguage: Language = 'en';
 const mockSubmit = vi.fn();
+const mockRefetch = vi.fn().mockResolvedValue('not_whitelisted');
 
 vi.mock('../shared/hooks/useUserStatus', () => ({
   useUserStatus: () => ({
     status: mockStatus,
     email: mockEmail,
     whitelistStatus: mockWhitelistStatus,
-    refetch: vi.fn(),
+    refetch: mockRefetch,
   }),
 }));
 
@@ -32,7 +34,11 @@ vi.mock('../shared/lib/i18n', async importOriginal => {
     useTranslation: () => ({
       language: mockLanguage,
       setLanguage: vi.fn(),
-      t: (key: keyof typeof waiting.en) => waiting[mockLanguage][key] ?? waiting.en[key],
+      t: (key: keyof typeof waiting.en | keyof typeof common.en) =>
+        waiting[mockLanguage][key as keyof typeof waiting.en] ??
+        common[mockLanguage][key as keyof typeof common.en] ??
+        waiting.en[key as keyof typeof waiting.en] ??
+        common.en[key as keyof typeof common.en],
     }),
   };
 });
@@ -95,6 +101,21 @@ describe('WaitingPage', () => {
     expect(screen.getByRole('heading', { name: waiting.en.waiting_review_heading })).toBeInTheDocument();
     expect(screen.getByText(waiting.en.waiting_review_body)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: waiting.en.waiting_submit })).not.toBeInTheDocument();
+  });
+
+  it('shows declined view when whitelist status is declined', () => {
+    mockWhitelistStatus = 'declined';
+    renderPage();
+    expect(screen.getByRole('heading', { name: waiting.en.waiting_declined_heading })).toBeInTheDocument();
+    expect(screen.getByText(waiting.en.waiting_declined_body)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: waiting.en.waiting_submit })).not.toBeInTheDocument();
+  });
+
+  it('refetches user status after successful submission', async () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: waiting.en.waiting_submit }));
+
+    await waitFor(() => expect(mockRefetch).toHaveBeenCalled());
   });
 
   it('renders Polish copy when locale is pl', () => {

@@ -1,6 +1,5 @@
 using AutoVerdikt.Application.FeatureFlags;
 using AutoVerdikt.Application.Whitelist;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace AutoVerdikt.WebApi;
 

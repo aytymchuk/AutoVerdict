@@ -1,6 +1,5 @@
 using AutoVerdikt.Application.FeatureFlags;
 using AutoVerdikt.Application.Whitelist;
-using AutoVerdikt.Domain.Whitelist;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Shouldly;

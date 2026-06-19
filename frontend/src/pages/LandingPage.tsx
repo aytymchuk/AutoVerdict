@@ -1,16 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../shared/lib/i18n';
-import type { Language } from '../shared/lib/i18n';
-
-const LANGUAGES: Language[] = ['en', 'pl', 'uk'];
+import { useCycleLanguage } from '../shared/lib/i18n/useCycleLanguage';
 
 export function LandingPage() {
-  const { t, language, setLanguage } = useTranslation();
-
-  function cycleLanguage() {
-    const idx = LANGUAGES.indexOf(language);
-    setLanguage(LANGUAGES[(idx + 1) % LANGUAGES.length]);
-  }
+  const { t } = useTranslation();
+  const { language, cycleLanguage } = useCycleLanguage();
 
   return (
     <div className="bg-surface-container-lowest text-text-primary antialiased selection:bg-primary-container selection:text-surface-container-lowest">
@@ -29,7 +23,7 @@ export function LandingPage() {
           </div>
           <div className="flex items-center gap-lg">
             <button
-              aria-label="Switch language"
+              aria-label={t('common_switch_language')}
               title={t('landing_footer_language')}
               onClick={cycleLanguage}
               className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center gap-1.5 px-3 h-10 rounded-full hover:bg-surface-container-highest text-[13px] font-medium"
@@ -441,19 +435,21 @@ export function LandingPage() {
               AutoVerdikt
             </div>
             <div className="flex flex-wrap justify-center gap-6">
-              <a className="text-[14px] text-on-surface-variant hover:text-primary transition-colors" href="#">
-                {t('landing_footer_privacy')}
-              </a>
-              <a className="text-[14px] text-on-surface-variant hover:text-primary transition-colors" href="#">
-                {t('landing_footer_terms')}
-              </a>
+              <Link className="text-[14px] text-on-surface-variant hover:text-primary transition-colors" to="/privacy">
+                {t('footer_privacy')}
+              </Link>
+              <Link className="text-[14px] text-on-surface-variant hover:text-primary transition-colors" to="/terms">
+                {t('footer_terms')}
+              </Link>
               <a className="text-[14px] text-on-surface-variant hover:text-primary transition-colors" href="#how-it-works">
                 {t('landing_footer_howItWorks')}
               </a>
             </div>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-border-subtle">
-            <div className="text-[14px] text-text-secondary">{t('landing_footer_copyright')}</div>
+            <div className="text-[14px] text-text-secondary">
+              {t('footer_copyright').replace('{year}', String(new Date().getFullYear()))}
+            </div>
             <button
               onClick={cycleLanguage}
               className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors text-[14px]"

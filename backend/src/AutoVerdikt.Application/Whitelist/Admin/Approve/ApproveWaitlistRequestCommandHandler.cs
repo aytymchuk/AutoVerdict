@@ -1,6 +1,5 @@
 using AutoVerdikt.Application.Email;
 using AutoVerdikt.Application.Users;
-using AutoVerdikt.Application.Whitelist;
 using AutoVerdikt.Application.Whitelist.Errors;
 using AutoVerdikt.Domain.Users;
 using AutoVerdikt.Domain.Whitelist;

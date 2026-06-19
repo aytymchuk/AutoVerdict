@@ -1,5 +1,4 @@
 using AutoVerdikt.Application.Common;
-using AutoVerdikt.Application.FeatureFlags;
 using AutoVerdikt.Application.Whitelist;
 using AutoVerdikt.Application.Whitelist.Admin.Add;
 using AutoVerdikt.Application.Whitelist.Admin.Approve;

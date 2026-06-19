@@ -14,6 +14,10 @@ export const waiting = {
     waiting_review_body:
       "We've received your request and will reach out when we open new spots.",
     waiting_error_generic: 'Something went wrong. Please try again.',
+    waiting_trust: 'Your data is securely protected.',
+    waiting_declined_heading: 'Your request was not approved.',
+    waiting_declined_body:
+      'We are unable to grant access at this time. If you believe this is a mistake, please contact support.',
   },
   pl: {
     waiting_heading: 'Aplikacja jest w fazie testów.',
@@ -30,6 +34,10 @@ export const waiting = {
     waiting_review_body:
       'Otrzymaliśmy Twoje zgłoszenie i skontaktujemy się, gdy otworzymy kolejne miejsca.',
     waiting_error_generic: 'Coś poszło nie tak. Spróbuj ponownie.',
+    waiting_trust: 'Twoje dane są bezpiecznie chronione.',
+    waiting_declined_heading: 'Twoje zgłoszenie nie zostało zaakceptowane.',
+    waiting_declined_body:
+      'Nie możemy teraz przyznać dostępu. Jeśli uważasz, że to pomyłka, skontaktuj się z nami.',
   },
   uk: {
     waiting_heading: 'Додаток у стадії тестування.',
@@ -46,5 +54,9 @@ export const waiting = {
     waiting_review_body:
       "Ми отримали вашу заявку та зв'яжемося, коли відкриємо нові місця.",
     waiting_error_generic: 'Щось пішло не так. Спробуйте ще раз.',
+    waiting_trust: 'Ваші дані надійно захищені.',
+    waiting_declined_heading: 'Вашу заявку не схвалено.',
+    waiting_declined_body:
+      'Наразі ми не можемо надати доступ. Якщо вважаєте, що це помилка, зв’яжіться з нами.',
   },
 } as const;

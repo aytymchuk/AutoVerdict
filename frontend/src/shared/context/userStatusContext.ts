@@ -3,6 +3,7 @@ import type { WhitelistStatus } from '../api/users';
 
 export type UserStatus =
   | 'loading'
+  | 'error'
   | 'unauthenticated'
   | 'unregistered'
   | 'not_whitelisted'
@@ -12,7 +13,7 @@ export interface UserStatusContextValue {
   status: UserStatus;
   email: string | null;
   whitelistStatus: WhitelistStatus;
-  refetch: () => void;
+  refetch: () => Promise<UserStatus>;
 }
 
 export const UserStatusContext = createContext<UserStatusContextValue | null>(null);

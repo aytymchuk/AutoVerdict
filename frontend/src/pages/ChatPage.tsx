@@ -1,7 +1,7 @@
 import { AIChat } from '../features/AIChat/AIChat';
 import { SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
 import { useTranslation } from '../shared/lib/i18n';
-import type { Language } from '../shared/lib/i18n';
+import { SUPPORTED_LANGUAGES } from '../shared/lib/i18n/types';
 
 export function ChatPage() {
   const { t, language, setLanguage } = useTranslation();
@@ -9,7 +9,7 @@ export function ChatPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex justify-end gap-2 text-xs">
-        {(['en', 'pl', 'uk'] as Language[]).map((lang) => (
+        {SUPPORTED_LANGUAGES.map(lang => (
           <button
             key={lang}
             onClick={() => setLanguage(lang)}

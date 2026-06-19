@@ -1,19 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation, type Language } from '../shared/lib/i18n';
+import { useTranslation } from '../shared/lib/i18n';
 import { useUserStatus } from '../shared/hooks/useUserStatus';
 import { useWaitlistApi } from '../shared/api/waitlist';
+import { PageShell } from '../shared/components/PageShell';
+import { formInputClassName } from '../shared/styles/formInput';
 
-const LANGUAGES: Language[] = ['en', 'pl', 'uk'];
-
-const inputClassName =
-  'w-full min-w-0 bg-surface-container-high border border-outline-variant rounded-xl px-4 py-3 text-on-surface text-[15px] placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary transition-colors';
-
-type FormState = 'idle' | 'success' | 'duplicate' | 'review';
+type FormState = 'idle' | 'success' | 'duplicate';
 
 export function WaitingPage() {
-  const { t, language, setLanguage } = useTranslation();
-  const { email, whitelistStatus } = useUserStatus();
+  const { t } = useTranslation();
+  const { email, whitelistStatus, refetch } = useUserStatus();
   const waitlistApi = useWaitlistApi();
 
   const [about, setAbout] = useState('');
@@ -21,14 +17,15 @@ export function WaitingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  function cycleLanguage() {
-    const idx = LANGUAGES.indexOf(language);
-    setLanguage(LANGUAGES[(idx + 1) % LANGUAGES.length]);
-  }
-
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (formState === 'success' || formState === 'duplicate' || formState === 'review' || whitelistStatus === 'requested') return;
+    if (
+      formState === 'success' ||
+      formState === 'duplicate' ||
+      whitelistStatus === 'requested' ||
+      whitelistStatus === 'declined'
+    )
+      return;
 
     setError('');
     setSubmitting(true);
@@ -36,6 +33,7 @@ export function WaitingPage() {
     try {
       const result = await waitlistApi.submitRequest(about.trim() || undefined);
       setFormState(result === 'already_submitted' ? 'duplicate' : 'success');
+      await refetch();
     } catch {
       setError(t('waiting_error_generic'));
     } finally {
@@ -43,59 +41,65 @@ export function WaitingPage() {
     }
   }
 
+  const showDeclined = whitelistStatus === 'declined';
   const showReview =
-    formState === 'review' || formState === 'duplicate' || whitelistStatus === 'requested';
+    formState === 'duplicate' || whitelistStatus === 'requested';
   const showSuccess = formState === 'success';
+  const showForm =
+    formState === 'idle' &&
+    whitelistStatus !== 'requested' &&
+    whitelistStatus !== 'declined';
+
+  const heading = showDeclined
+    ? t('waiting_declined_heading')
+    : showReview
+      ? t('waiting_review_heading')
+      : t('waiting_heading');
+
+  const body = showDeclined
+    ? t('waiting_declined_body')
+    : showReview
+      ? t('waiting_review_body')
+      : t('waiting_body');
 
   return (
-    <div className="min-h-screen w-full bg-surface-container-lowest px-4 py-10 sm:px-6 sm:py-14">
-      <div className="mx-auto w-full max-w-form min-w-0">
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <Link
-            to="/"
-            className="font-headline-md text-[20px] font-semibold text-on-surface tracking-tight hover:text-primary transition-colors shrink-0"
-          >
-            AutoVerdikt
-          </Link>
-          <button
-            type="button"
-            onClick={cycleLanguage}
-            className="text-on-surface-variant text-sm uppercase tracking-wide hover:text-primary transition-colors"
-          >
-            {language}
-          </button>
-        </div>
+    <PageShell>
+      {/* Heading block */}
+      <div className="mb-lg md:mb-xl">
+        <h1 className="font-headline-lg text-[36px] md:text-[48px] leading-tight font-semibold text-on-surface tracking-tight mb-md">
+          {heading}
+        </h1>
+        <p className="font-body-lg text-[18px] text-text-secondary max-w-2xl leading-relaxed">
+          {body}
+        </p>
+      </div>
 
-        {showReview ? (
-          <>
-            <h1 className="font-headline-lg text-[28px] font-semibold text-on-surface mb-4">
-              {t('waiting_review_heading')}
-            </h1>
-            <p className="text-on-surface-variant text-[15px] leading-relaxed mb-8">
-              {t('waiting_review_body')}
-            </p>
-          </>
-        ) : (
-          <>
-            <h1 className="font-headline-lg text-[28px] font-semibold text-on-surface mb-4">
-              {t('waiting_heading')}
-            </h1>
-            <p className="text-on-surface-variant text-[15px] leading-relaxed mb-8">
-              {t('waiting_body')}
-            </p>
-          </>
-        )}
+      {/* Success banner */}
+      {showSuccess && (
+        <p
+          className="mb-lg rounded-xl bg-primary-container/20 border border-primary/20 px-md py-sm text-on-surface font-body-md"
+          role="status"
+        >
+          {t('waiting_success')}
+        </p>
+      )}
 
-        {showSuccess && (
-          <p className="mb-6 rounded-xl bg-primary-container/30 border border-primary/20 px-4 py-3 text-on-surface text-[15px]" role="status">
-            {t('waiting_success')}
-          </p>
-        )}
+      {/* Form card */}
+      {showForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="bg-surface border border-border-subtle rounded-xl p-lg md:p-xl inner-glow relative overflow-hidden group"
+        >
+          {/* Hover left accent */}
+          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-risk-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {formState === 'idle' && whitelistStatus !== 'requested' && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="waiting-email" className="block text-on-surface text-sm font-medium mb-2">
+          <div className="flex flex-col gap-lg">
+            {/* Email field */}
+            <div className="flex flex-col gap-sm">
+              <label
+                htmlFor="waiting-email"
+                className="font-body-sm text-[14px] text-on-surface font-medium"
+              >
                 {t('waiting_email_label')}
               </label>
               <input
@@ -103,12 +107,16 @@ export function WaitingPage() {
                 type="email"
                 readOnly
                 value={email ?? ''}
-                className={`${inputClassName} opacity-80 cursor-not-allowed`}
+                className={`${formInputClassName} opacity-70 cursor-not-allowed`}
               />
             </div>
 
-            <div>
-              <label htmlFor="waiting-about" className="block text-on-surface text-sm font-medium mb-2">
+            {/* About textarea */}
+            <div className="flex flex-col gap-sm">
+              <label
+                htmlFor="waiting-about"
+                className="font-body-sm text-[14px] text-on-surface font-medium"
+              >
                 {t('waiting_about_label')}
               </label>
               <textarea
@@ -117,26 +125,35 @@ export function WaitingPage() {
                 value={about}
                 onChange={e => setAbout(e.target.value)}
                 placeholder={t('waiting_about_placeholder')}
-                className={inputClassName}
+                className={`${formInputClassName} resize-y min-h-[100px]`}
               />
             </div>
 
             {error && (
-              <p className="text-error text-sm" role="alert">
+              <p className="text-error text-[14px]" role="alert">
                 {error}
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full rounded-xl bg-primary text-on-primary px-4 py-3 text-[15px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              {t('waiting_submit')}
-            </button>
-          </form>
-        )}
+            {/* Submit */}
+            <div className="pt-sm">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-risk-medium text-surface-container-lowest font-body-lg text-[16px] font-bold rounded-full py-md px-lg flex items-center justify-center gap-sm transition-all duration-300 hover:bg-primary-fixed-dim hover:shadow-[0_0_24px_-6px_rgba(245,158,11,0.3)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-risk-medium disabled:opacity-50"
+              >
+                {t('waiting_submit')}
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* Trust indicator */}
+      <div className="mt-lg flex items-center justify-center gap-sm text-text-secondary">
+        <span className="material-symbols-outlined text-[16px]">lock</span>
+        <span className="font-body-sm text-[14px]">{t('waiting_trust')}</span>
       </div>
-    </div>
+    </PageShell>
   );
 }

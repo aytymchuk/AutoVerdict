@@ -63,7 +63,7 @@ public class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, IAsyncLi
                 .SetFallbackPolicy(new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build())
-                .AddPolicy("Admin", policy => policy.RequireRole("admin"));
+                .AddPolicy("Admin", policy => policy.RequireRole("admin", "org:admin"));
         });
     }
 }

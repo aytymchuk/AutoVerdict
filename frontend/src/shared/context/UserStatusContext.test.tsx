@@ -108,14 +108,15 @@ describe('UserStatusProvider', () => {
     );
   });
 
-  it('keeps loading when the API call throws (network error)', async () => {
+  it('sets status to error when the API call throws (network error)', async () => {
     mockIsSignedIn = true;
     mockGetMe.mockRejectedValue(new Error('Network error'));
 
     render(<StatusConsumer />, { wrapper: Wrapper });
 
-    await waitFor(() => expect(mockGetMe).toHaveBeenCalled());
-    expect(screen.getByTestId('status')).toHaveTextContent('loading');
+    await waitFor(() =>
+      expect(screen.getByTestId('status')).toHaveTextContent('error')
+    );
   });
 
   it('retriggers the API call when refetch is invoked', async () => {

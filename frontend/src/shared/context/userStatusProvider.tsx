@@ -3,56 +3,80 @@ import { useAuth } from '@clerk/clerk-react';
 import { useUsersApi, type WhitelistStatus } from '../api/users';
 import { UserStatusContext, type UserStatus } from './userStatusContext';
 
+interface ResolvedUserStatus {
+  status: UserStatus;
+  email: string | null;
+  whitelistStatus: WhitelistStatus;
+}
+
 export function UserStatusProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, isLoaded } = useAuth();
   const usersApi = useUsersApi();
   const [status, setStatus] = useState<UserStatus>('loading');
   const [email, setEmail] = useState<string | null>(null);
   const [whitelistStatus, setWhitelistStatus] = useState<WhitelistStatus>('none');
-  const [trigger, setTrigger] = useState(0);
 
-  const refetch = useCallback(() => setTrigger(n => n + 1), []);
+  const resolveStatus = useCallback(async (): Promise<ResolvedUserStatus> => {
+    if (!isLoaded) {
+      return { status: 'loading', email: null, whitelistStatus: 'none' };
+    }
+
+    if (!isSignedIn) {
+      return { status: 'unauthenticated', email: null, whitelistStatus: 'none' };
+    }
+
+    try {
+      const user = await usersApi.getMe();
+
+      if (!user) {
+        return { status: 'unregistered', email: null, whitelistStatus: 'none' };
+      }
+
+      return {
+        status: user.isWhitelisted ? 'registered' : 'not_whitelisted',
+        email: user.email,
+        whitelistStatus: user.whitelistStatus,
+      };
+    } catch {
+      return { status: 'error', email: null, whitelistStatus: 'none' };
+    }
+  }, [isLoaded, isSignedIn, usersApi]);
+
+  const applyResolved = useCallback((resolved: ResolvedUserStatus) => {
+    setStatus(resolved.status);
+    setEmail(resolved.email);
+    setWhitelistStatus(resolved.whitelistStatus);
+  }, []);
+
+  const refetch = useCallback(async (): Promise<UserStatus> => {
+    if (!isLoaded) {
+      return 'loading';
+    }
+
+    if (!isSignedIn) {
+      applyResolved({ status: 'unauthenticated', email: null, whitelistStatus: 'none' });
+      return 'unauthenticated';
+    }
+
+    setStatus('loading');
+    const resolved = await resolveStatus();
+    applyResolved(resolved);
+    return resolved.status;
+  }, [applyResolved, isLoaded, isSignedIn, resolveStatus]);
 
   useEffect(() => {
-    if (!isLoaded) return;
-
     let cancelled = false;
 
-    (async () => {
-      if (!isSignedIn) {
-        if (!cancelled) {
-          setEmail(null);
-          setWhitelistStatus('none');
-          setStatus('unauthenticated');
-        }
-        return;
+    void resolveStatus().then(resolved => {
+      if (!cancelled) {
+        applyResolved(resolved);
       }
-
-      if (!cancelled) setStatus('loading');
-
-      try {
-        const user = await usersApi.getMe();
-        if (cancelled) return;
-
-        if (!user) {
-          setEmail(null);
-          setWhitelistStatus('none');
-          setStatus('unregistered');
-          return;
-        }
-
-        setEmail(user.email);
-        setWhitelistStatus(user.whitelistStatus);
-        setStatus(user.isWhitelisted ? 'registered' : 'not_whitelisted');
-      } catch {
-        if (!cancelled) setStatus('loading');
-      }
-    })();
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn, usersApi, trigger]);
+  }, [applyResolved, resolveStatus]);
 
   return (
     <UserStatusContext.Provider value={{ status, email, whitelistStatus, refetch }}>

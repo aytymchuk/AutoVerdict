@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using AutoVerdikt.Application.Whitelist.Admin.GetWaitlistRequests;
-using AutoVerdikt.Domain.Whitelist;
 using AutoVerdikt.WebApi.Endpoints.Admin;
 using AutoVerdikt.WebApi.Endpoints.Whitelist;
 using AutoVerdikt.WebApi.IntegrationTests.Infrastructure;

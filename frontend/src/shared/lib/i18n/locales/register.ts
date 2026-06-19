@@ -9,7 +9,6 @@ export const register = {
     register_submit: 'Create account',
     register_submitting: 'Creating account…',
     register_error_generic: 'Registration failed. Please try again.',
-    register_switch_language: 'Switch language',
   },
   pl: {
     register_title: 'Uzupełnij swój profil',
@@ -21,7 +20,6 @@ export const register = {
     register_submit: 'Utwórz konto',
     register_submitting: 'Tworzenie konta…',
     register_error_generic: 'Rejestracja nie powiodła się. Spróbuj ponownie.',
-    register_switch_language: 'Zmień język',
   },
   uk: {
     register_title: 'Завершіть свій профіль',
@@ -33,6 +31,5 @@ export const register = {
     register_submit: 'Створити обліковий запис',
     register_submitting: 'Створення облікового запису…',
     register_error_generic: 'Не вдалося зареєструватися. Спробуйте ще раз.',
-    register_switch_language: 'Змінити мову',
   },
 } as const;

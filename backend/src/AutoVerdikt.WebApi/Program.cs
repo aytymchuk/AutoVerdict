@@ -85,6 +85,7 @@ app.Services.GetRequiredService<IFeatureFlagService>()
     .LogResolvedValue();
 
 app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 if (!app.Environment.IsDevelopment())
 {
