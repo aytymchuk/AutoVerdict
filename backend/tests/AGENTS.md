@@ -22,6 +22,7 @@
 12. **Layout**: One folder per feature under the integration test project; each feature has its own test base class (e.g., `Users/UsersTestBase.cs`) inheriting `BaseFixture`. Do not name feature classes `*Fixture` — that conflicts with AutoFixture’s `Fixture` type in C# 13.
 13. **Isolation**: Tests must be independent and idempotent — use unique data per test (via `AutoFixture`) so tests never share identifiers or affect each other.
 14. **Test data**: Use **AutoFixture** for generating test data — avoid hand-crafted dummy strings.
+15. **Request payloads**: Serialize API request bodies with the same WebApi DTO types (e.g., `CreateResearchDto`, `UserRegistrationDto`) in `PostAsJsonAsync` / `PatchAsJsonAsync`. Do not use anonymous objects for request payloads. Exception: raw JSON strings are allowed when explicitly testing deserialization edge cases (e.g., unknown JSON properties rejected by the API).
 
 ## Architecture Tests
 

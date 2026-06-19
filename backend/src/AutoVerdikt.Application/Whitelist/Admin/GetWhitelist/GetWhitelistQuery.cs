@@ -1,5 +1,4 @@
 using AutoVerdikt.Application.Common;
-using Mediator;
 
 namespace AutoVerdikt.Application.Whitelist.Admin.GetWhitelist;
 

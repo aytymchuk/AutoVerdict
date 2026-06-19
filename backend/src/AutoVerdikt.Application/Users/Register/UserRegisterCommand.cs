@@ -1,5 +1,3 @@
-using FluentResults;
-using Mediator;
 using AutoVerdikt.Domain.Users;
 
 namespace AutoVerdikt.Application.Users.Register;

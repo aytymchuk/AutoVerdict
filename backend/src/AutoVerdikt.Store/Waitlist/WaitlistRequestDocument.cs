@@ -6,7 +6,7 @@ namespace AutoVerdikt.Store.Waitlist;
 internal sealed class WaitlistRequestDocument
 {
     [BsonId]
-    [BsonRepresentation(BsonType.String)]
+    [BsonGuidRepresentation(GuidRepresentation.Standard)]
     public Guid Id { get; set; }
 
     [BsonElement("authId")]
@@ -33,7 +33,7 @@ internal sealed class WaitlistRequestDocument
 
     [BsonElement("reviewedBy")]
     [BsonIgnoreIfNull]
-    [BsonRepresentation(BsonType.String)]
+    [BsonGuidRepresentation(GuidRepresentation.Standard)]
     public Guid? ReviewedBy { get; set; }
 
     [BsonElement("reviewedAt")]

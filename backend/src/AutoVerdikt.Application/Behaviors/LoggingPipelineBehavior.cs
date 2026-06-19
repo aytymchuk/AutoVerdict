@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using AutoVerdikt.Application.Behaviors.Logging;
-using FluentResults;
-using Mediator;
 using Microsoft.Extensions.Logging;
 
 namespace AutoVerdikt.Application.Behaviors;

@@ -1,5 +1,4 @@
 using AutoVerdikt.Domain.Whitelist;
-using Mediator;
 
 namespace AutoVerdikt.Application.Whitelist.Admin.GetWaitlistRequests;
 

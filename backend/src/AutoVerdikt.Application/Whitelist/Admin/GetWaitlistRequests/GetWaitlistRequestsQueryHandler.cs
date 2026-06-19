@@ -1,5 +1,3 @@
-using Mediator;
-
 namespace AutoVerdikt.Application.Whitelist.Admin.GetWaitlistRequests;
 
 public sealed class GetWaitlistRequestsQueryHandler(IWaitlistRequestRepository repository)
