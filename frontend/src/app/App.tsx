@@ -6,9 +6,10 @@ import { AuthPage } from '../pages/AuthPage';
 import { AuthCallbackPage } from '../pages/AuthCallbackPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { HomePage } from '../pages/HomePage';
+import { WaitingPage } from '../pages/WaitingPage';
 import { I18nProvider } from '../shared/lib/i18n/index';
 import { UserStatusProvider } from '../shared/context/userStatusProvider';
-import { ProtectedRoute, RegisterRoute } from '../shared/components/ProtectedRoute';
+import { ProtectedRoute, RegisterRoute, WhitelistRoute } from '../shared/components/ProtectedRoute';
 
 export function App() {
   return (
@@ -26,6 +27,14 @@ export function App() {
                   <RegisterRoute>
                     <RegisterPage />
                   </RegisterRoute>
+                }
+              />
+              <Route
+                path="/waiting"
+                element={
+                  <WhitelistRoute>
+                    <WaitingPage />
+                  </WhitelistRoute>
                 }
               />
               <Route

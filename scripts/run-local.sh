@@ -16,14 +16,13 @@ else
     exit 1
 fi
 
-echo "Starting AutoVerdikt local environment (API + infra; no Docker web)..."
-# Default stack: API + databases. Use `make up-prod` to include the production web image.
+echo "Starting AutoVerdikt local environment (API + infra + Vite web)..."
 $DOCKER_COMPOSE_CMD up -d --build
 
 echo ""
 echo "Local environment ready."
-echo "  API:  http://localhost:5065"
-echo "  Seq:  http://localhost:5341"
+echo "  Frontend (Vite): http://localhost:5173"
+echo "  API:             http://localhost:5065"
+echo "  Seq:             http://localhost:5341"
 echo ""
-echo "For frontend hot reload, run: make dev"
-echo "  (or: cd frontend && pnpm dev → http://localhost:5173)"
+echo "For HMR frontend only on the host (no Docker web), run: cd frontend && pnpm dev"

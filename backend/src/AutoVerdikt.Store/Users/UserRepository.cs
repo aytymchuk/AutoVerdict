@@ -21,12 +21,15 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
         if (document is null)
             return null;
 
-        return UserAccount.Reconstitute(
-            document.Id,
-            document.AuthId,
-            document.Name,
-            document.Email,
-            new DateTimeOffset(document.RegisteredAt, TimeSpan.Zero));
+        return new UserAccount
+        {
+            Id = document.Id,
+            AuthId = document.AuthId,
+            Name = document.Name,
+            Email = document.Email,
+            RegisteredAt = new DateTimeOffset(document.RegisteredAt, TimeSpan.Zero),
+            WhitelistStatus = ParseWhitelistStatus(document.WhitelistStatus ?? document.LegacyWaitlistStatus)
+        };
     }
 
     public async Task<Result> CreateAsync(UserAccount user, CancellationToken cancellationToken = default)
@@ -37,7 +40,8 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
             AuthId = user.AuthId,
             Name = user.Name,
             Email = user.Email,
-            RegisteredAt = user.RegisteredAt.UtcDateTime
+            RegisteredAt = user.RegisteredAt.UtcDateTime,
+            WhitelistStatus = ToWhitelistStatusString(user.WhitelistStatus)
         };
         try
         {
@@ -49,4 +53,38 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
             return Result.Fail(new UserAlreadyRegisteredError());
         }
     }
+
+    public async Task UpdateWhitelistStatusAsync(
+        UserAccount user,
+        CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<UserDocument>.Filter.Eq(u => u.AuthId, user.AuthId);
+        var update = Builders<UserDocument>.Update.Set(
+            u => u.WhitelistStatus,
+            ToWhitelistStatusString(user.WhitelistStatus));
+
+        await collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+    }
+
+    private static string ToWhitelistStatusString(WhitelistStatus status) => status switch
+    {
+        WhitelistStatus.None => "none",
+        WhitelistStatus.Requested => "requested",
+        WhitelistStatus.Approved => "approved",
+        WhitelistStatus.Declined => "declined",
+        _ => "none"
+    };
+
+    private static WhitelistStatus ParseWhitelistStatus(string? status) => status switch
+    {
+        "none" => WhitelistStatus.None,
+        "requested" => WhitelistStatus.Requested,
+        "approved" => WhitelistStatus.Approved,
+        "declined" => WhitelistStatus.Declined,
+        // Legacy values from waitlistStatus field
+        "pending" => WhitelistStatus.Requested,
+        "rejected" => WhitelistStatus.Declined,
+        null => WhitelistStatus.None,
+        _ => WhitelistStatus.None
+    };
 }

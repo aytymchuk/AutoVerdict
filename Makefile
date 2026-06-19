@@ -1,4 +1,4 @@
-.PHONY: run dev clean test-backend up up-prod down
+.PHONY: run dev clean build-full build-backend build-frontend test-full test-backend test-frontend up down
 
 run:
 	@bash scripts/run-local.sh
@@ -9,16 +9,25 @@ dev:
 clean:
 	@bash scripts/clean-all.sh
 
+build-full: build-backend build-frontend
+
+build-backend:
+	@cd backend && dotnet build
+
+build-frontend:
+	@cd frontend && pnpm lint && pnpm build
+
+test-full: test-backend test-frontend
+
 test-backend:
 	@cd backend && dotnet test
 
-# API + infra only (Vite on host via `make dev`)
-up:
-	docker compose up -d
+test-frontend:
+	@cd frontend && pnpm test
 
-# Full stack including production web image on :3000
-up-prod:
-	docker compose --profile production up -d --build
+# API + infra + Vite dev server (HMR on :5173)
+up:
+	docker compose up -d --build
 
 down:
 	docker compose down

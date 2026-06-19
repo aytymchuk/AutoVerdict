@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { RegisterPage } from './RegisterPage';
 
 const mockRegister = vi.hoisted(() => vi.fn());
-const mockRefetch = vi.fn();
+const mockRefetch = vi.fn().mockResolvedValue('registered');
 const mockUseUser = vi.fn();
 
 vi.mock('@clerk/clerk-react', () => ({
@@ -27,6 +27,7 @@ function renderPage() {
       <Routes>
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/home" element={<div>home page</div>} />
+        <Route path="/waiting" element={<div>waiting page</div>} />
       </Routes>
     </MemoryRouter>
   );
@@ -67,7 +68,8 @@ describe('RegisterPage', () => {
     );
   });
 
-  it('calls refetch and navigates to /home on success', async () => {
+  it('calls refetch and navigates to /home on success when whitelisted', async () => {
+    mockRefetch.mockResolvedValue('registered');
     mockRegister.mockResolvedValue({ id: '1', name: 'Jane Doe', email: 'jane@example.com', registeredAt: '2024-01-01' });
     renderPage();
 
@@ -77,6 +79,24 @@ describe('RegisterPage', () => {
       expect(screen.getByText('home page')).toBeInTheDocument()
     );
     expect(mockRefetch).toHaveBeenCalled();
+  });
+
+  it('navigates to /waiting when user is not whitelisted after register', async () => {
+    mockRefetch.mockResolvedValue('not_whitelisted');
+    mockRegister.mockResolvedValue({
+      id: '1',
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+      registeredAt: '2024-01-01',
+      isWhitelisted: false,
+    });
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+    await waitFor(() =>
+      expect(screen.getByText('waiting page')).toBeInTheDocument()
+    );
   });
 
   it('displays field-level validation errors from API 400 response', async () => {
@@ -101,6 +121,19 @@ describe('RegisterPage', () => {
   it('displays global error when API returns an error string', async () => {
     mockRegister.mockRejectedValue(
       new Error(JSON.stringify({ error: 'User is already registered.' }))
+    );
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+    await waitFor(() =>
+      expect(screen.getByText('User is already registered.')).toBeInTheDocument()
+    );
+  });
+
+  it('displays global error when API returns a ProblemDetails title', async () => {
+    mockRegister.mockRejectedValue(
+      new Error(JSON.stringify({ title: 'User is already registered.', status: 409 }))
     );
     renderPage();
 

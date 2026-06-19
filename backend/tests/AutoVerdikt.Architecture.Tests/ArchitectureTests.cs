@@ -1,6 +1,5 @@
 using System.Reflection;
 using NetArchTest.Rules;
-using Xunit;
 using Shouldly;
 
 namespace AutoVerdikt.Architecture.Tests;

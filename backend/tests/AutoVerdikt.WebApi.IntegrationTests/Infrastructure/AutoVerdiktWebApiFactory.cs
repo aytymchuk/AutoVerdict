@@ -1,3 +1,5 @@
+using AutoVerdikt.Application.Email;
+using AutoVerdikt.Application.FeatureFlags;
 using AutoVerdikt.Store.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -6,15 +8,20 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.MongoDb;
 
 namespace AutoVerdikt.WebApi.IntegrationTests.Infrastructure;
 
-public sealed class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly MongoDbContainer _mongoContainer = new MongoDbBuilder()
         .WithImage("mongo:8.0")
         .Build();
+
+    public SpySendGridService SendGridSpy { get; } = new();
+
+    public bool WhitelistEnabled { get; set; } = true;
 
     public async Task InitializeAsync() => await _mongoContainer.StartAsync();
 
@@ -34,11 +41,15 @@ public sealed class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, I
             {
                 [$"{MongoDbOptions.SectionName}:ConnectionString"] = _mongoContainer.GetConnectionString(),
                 [$"{MongoDbOptions.SectionName}:DatabaseName"] = $"autoverdikt_it_{Guid.NewGuid():N}",
+                [$"{FeatureFlagOptions.SectionName}:WhitelistEnabled"] = WhitelistEnabled.ToString().ToLowerInvariant(),
             });
         });
 
         builder.ConfigureTestServices(services =>
         {
+            services.RemoveAll<ISendGridService>();
+            services.AddSingleton<ISendGridService>(SendGridSpy);
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
@@ -51,7 +62,8 @@ public sealed class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, I
             services.AddAuthorizationBuilder()
                 .SetFallbackPolicy(new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
-                    .Build());
+                    .Build())
+                .AddPolicy("Admin", policy => policy.RequireRole("admin", "org:admin"));
         });
     }
 }

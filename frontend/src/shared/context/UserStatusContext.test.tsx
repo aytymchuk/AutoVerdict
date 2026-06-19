@@ -60,9 +60,34 @@ describe('UserStatusProvider', () => {
     expect(mockGetMe).not.toHaveBeenCalled();
   });
 
-  it('sets status to registered when getMe returns a user', async () => {
+  it('sets status to not_whitelisted when getMe returns user without whitelist', async () => {
     mockIsSignedIn = true;
-    mockGetMe.mockResolvedValue({ id: '1', name: 'Test', email: 'test@test.com', registeredAt: '2024-01-01' });
+    mockGetMe.mockResolvedValue({
+      id: '1',
+      name: 'Test',
+      email: 'test@test.com',
+      registeredAt: '2024-01-01',
+      isWhitelisted: false,
+      whitelistStatus: 'none',
+    });
+
+    render(<StatusConsumer />, { wrapper: Wrapper });
+
+    await waitFor(() =>
+      expect(screen.getByTestId('status')).toHaveTextContent('not_whitelisted')
+    );
+  });
+
+  it('sets status to registered when getMe returns a whitelisted user', async () => {
+    mockIsSignedIn = true;
+    mockGetMe.mockResolvedValue({
+      id: '1',
+      name: 'Test',
+      email: 'test@test.com',
+      registeredAt: '2024-01-01',
+      isWhitelisted: true,
+      whitelistStatus: 'none',
+    });
 
     render(<StatusConsumer />, { wrapper: Wrapper });
 
@@ -83,19 +108,27 @@ describe('UserStatusProvider', () => {
     );
   });
 
-  it('keeps loading when the API call throws (network error)', async () => {
+  it('sets status to error when the API call throws (network error)', async () => {
     mockIsSignedIn = true;
     mockGetMe.mockRejectedValue(new Error('Network error'));
 
     render(<StatusConsumer />, { wrapper: Wrapper });
 
-    await waitFor(() => expect(mockGetMe).toHaveBeenCalled());
-    expect(screen.getByTestId('status')).toHaveTextContent('loading');
+    await waitFor(() =>
+      expect(screen.getByTestId('status')).toHaveTextContent('error')
+    );
   });
 
   it('retriggers the API call when refetch is invoked', async () => {
     mockIsSignedIn = true;
-    mockGetMe.mockResolvedValue({ id: '1', name: 'Test', email: 'test@test.com', registeredAt: '2024-01-01' });
+    mockGetMe.mockResolvedValue({
+      id: '1',
+      name: 'Test',
+      email: 'test@test.com',
+      registeredAt: '2024-01-01',
+      isWhitelisted: true,
+      whitelistStatus: 'none',
+    });
 
     render(<StatusConsumer />, { wrapper: Wrapper });
     await waitFor(() =>

@@ -6,7 +6,8 @@ The core business-logic layer. All outer layers depend on it; it depends only on
 
 - **No outbound project dependencies**: Must NOT reference Infrastructure, Store, WebApi, or Agents. Any violation breaks the architecture test.
 - **Define abstractions**: Declare repository and service interfaces here (e.g., `IUserRepository`). Implementations live in the outer layers.
-- **Commands & Queries**: Use `Mediator.Abstractions` (`IRequest<T>`, `IRequestHandler<TRequest, TResponse>`). Commands and their handlers live together in `<Feature>/` sub-folders (e.g., `Users/Register/`).
+- **Commands & Queries**: Use `Mediator.Abstractions` (`IRequest<T>`, `IRequestHandler<TRequest, TResponse>`). Each command/query and its handler live together in an operation-specific sub-folder under `<Feature>/` (e.g., `Users/Register/`, `Whitelist/Admin/Add/`). Name the folder after the operation verb (`Add`, `Remove`, `Approve`, `GetCurrent`, etc.) — not after the full type name.
+- **Cross-feature code**: Shared types, utilities, and services used by multiple features live in top-level folders — not inside `<Feature>/`. Examples: `Abstractions/`, `Behaviors/`, `Common/`, `Errors/`, `FeatureFlags/`, `Identity/`. Feature folders (`Users/`, `Whitelist/`, etc.) contain only feature-specific commands, queries, handlers, repository interfaces, services, and errors.
 
 ## Logging & Observability
 

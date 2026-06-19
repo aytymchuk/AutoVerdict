@@ -20,7 +20,7 @@ internal static class UserEndpoints
                 var u = result.Value;
                 return Results.Created(
                     UserEndpointConstants.GetCurrentRoute,
-                    new UserAccountDto(u.Id, u.Name, u.Email, u.RegisteredAt));
+                    new UserAccountDto(u.Id, u.Name, u.Email, u.RegisteredAt, IsWhitelisted: true, WhitelistStatus: "none"));
             })
             .WithName(UserEndpointConstants.RegisterName)
             .WithSummary(UserEndpointConstants.RegisterSummary)
@@ -31,7 +31,6 @@ internal static class UserEndpoints
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .AddFluentValidationAutoValidation();
-        // No AllowAnonymous — global fallback policy (RequireAuthenticatedUser) applies
 
         app.MapGet(UserEndpointConstants.GetCurrentRoute,
             async (IMediator mediator, CancellationToken ct) =>
@@ -40,7 +39,13 @@ internal static class UserEndpoints
                 if (user is null)
                     return Results.NotFound();
 
-                return Results.Ok(new UserAccountDto(user.Id, user.Name, user.Email, user.RegisteredAt));
+                return Results.Ok(new UserAccountDto(
+                    user.Id,
+                    user.Name,
+                    user.Email,
+                    user.RegisteredAt,
+                    user.IsWhitelisted,
+                    user.WhitelistStatus.ToString().ToLowerInvariant()));
             })
             .WithName(UserEndpointConstants.GetCurrentName)
             .WithSummary(UserEndpointConstants.GetCurrentSummary)
@@ -48,7 +53,6 @@ internal static class UserEndpoints
             .Produces<UserAccountDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status401Unauthorized);
-        // No AllowAnonymous — global fallback policy (RequireAuthenticatedUser) applies
 
         return app;
     }

@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { ProtectedRoute, RegisterRoute } from './ProtectedRoute';
+import { ProtectedRoute, RegisterRoute, WhitelistRoute } from './ProtectedRoute';
 import type { UserStatus } from '../context/userStatusContext';
 
 let mockStatus: UserStatus = 'loading';
 
 vi.mock('../hooks/useUserStatus', () => ({
-  useUserStatus: () => ({ status: mockStatus, refetch: vi.fn() }),
+  useUserStatus: () => ({ status: mockStatus, whitelistStatus: 'none', refetch: vi.fn() }),
 }));
 
 function renderInRouter(element: React.ReactNode) {
@@ -20,6 +20,7 @@ function renderInRouter(element: React.ReactNode) {
         <Route path="/auth" element={<div>auth page</div>} />
         <Route path="/register" element={<div>register page</div>} />
         <Route path="/home" element={<div>home page</div>} />
+        <Route path="/waiting" element={<div>waiting page</div>} />
       </Routes>
     </MemoryRouter>
   );
@@ -49,10 +50,39 @@ describe('ProtectedRoute', () => {
     expect(screen.queryByText('protected content')).not.toBeInTheDocument();
   });
 
+  it('redirects to /waiting when not_whitelisted', () => {
+    mockStatus = 'not_whitelisted';
+    renderInRouter(<ProtectedRoute><div>protected content</div></ProtectedRoute>);
+    expect(screen.getByText('waiting page')).toBeInTheDocument();
+    expect(screen.queryByText('protected content')).not.toBeInTheDocument();
+  });
+
   it('renders children when registered', () => {
     mockStatus = 'registered';
     renderInRouter(<ProtectedRoute><div>protected content</div></ProtectedRoute>);
     expect(screen.getByText('protected content')).toBeInTheDocument();
+  });
+});
+
+describe('WhitelistRoute', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('redirects to /auth when unauthenticated', () => {
+    mockStatus = 'unauthenticated';
+    renderInRouter(<WhitelistRoute><div>waiting form</div></WhitelistRoute>);
+    expect(screen.getByText('auth page')).toBeInTheDocument();
+  });
+
+  it('redirects to /home when registered', () => {
+    mockStatus = 'registered';
+    renderInRouter(<WhitelistRoute><div>waiting form</div></WhitelistRoute>);
+    expect(screen.getByText('home page')).toBeInTheDocument();
+  });
+
+  it('renders children when not_whitelisted', () => {
+    mockStatus = 'not_whitelisted';
+    renderInRouter(<WhitelistRoute><div>waiting form</div></WhitelistRoute>);
+    expect(screen.getByText('waiting form')).toBeInTheDocument();
   });
 });
 

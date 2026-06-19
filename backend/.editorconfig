@@ -1,0 +1,5 @@
+root = true
+
+[*.cs]
+dotnet_remove_unnecessary_usings = true
+dotnet_diagnostic.IDE0005.severity = warning

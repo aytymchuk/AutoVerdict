@@ -18,22 +18,18 @@ else
   exit 1
 fi
 
-if ! command -v pnpm &>/dev/null; then
-  echo "Error: pnpm is not installed. Install Node.js 22+ and run: npm install -g pnpm" >&2
-  exit 1
-fi
-
 if [[ ! -f .env ]]; then
   echo "Warning: .env not found. Copy .env.example to .env and set VITE_CLERK_PUBLISHABLE_KEY." >&2
 fi
 
-echo "Starting API and infrastructure (MongoDB, Azurite, Seq) — web container skipped for HMR..."
+echo "Starting full dev stack (API, infra, Vite web with HMR)..."
 "${DOCKER_COMPOSE_CMD[@]}" up -d --build
 
 echo ""
-echo "Backend ready at http://localhost:5065"
-echo "Starting Vite dev server at http://localhost:5173 (HMR enabled)..."
+echo "Dev stack ready:"
+echo "  Frontend (Vite): http://localhost:5173"
+echo "  API:             http://localhost:5065"
+echo "  Seq:             http://localhost:5341"
 echo ""
-
-cd frontend
-exec pnpm dev
+echo "Logs: ${DOCKER_COMPOSE_CMD[*]} logs -f web"
+echo "Stop: ${DOCKER_COMPOSE_CMD[*]} down"

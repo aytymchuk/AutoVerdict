@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace AutoVerdikt.WebApi.Authentication.Clerk;
 
 internal static partial class ClerkAuthLog

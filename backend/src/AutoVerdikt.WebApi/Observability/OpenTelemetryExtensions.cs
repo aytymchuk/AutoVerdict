@@ -41,6 +41,7 @@ internal static class OpenTelemetryExtensions
 
         builder.Logging
             .ClearProviders()
+            .AddConsole()
             .AddOpenTelemetry(o =>
             {
                 o.IncludeFormattedMessage = true;
@@ -55,9 +56,6 @@ internal static class OpenTelemetryExtensions
                         otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
                     });
                 }
-
-                if (builder.Environment.IsDevelopment())
-                    o.AddConsoleExporter();
             });
 
         return builder;

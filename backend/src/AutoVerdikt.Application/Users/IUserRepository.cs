@@ -8,4 +8,7 @@ public interface IUserRepository
     Task<bool> ExistsByAuthIdAsync(string authId, CancellationToken cancellationToken = default);
     Task<Result> CreateAsync(UserAccount user, CancellationToken cancellationToken = default);
     Task<UserAccount?> GetByAuthIdAsync(string authId, CancellationToken cancellationToken = default);
+    Task UpdateWhitelistStatusAsync(
+        UserAccount user,
+        CancellationToken cancellationToken = default);
 }

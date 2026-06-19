@@ -23,7 +23,11 @@ export function AuthCallbackPage() {
       .getMe()
       .then(user => {
         if (cancelled) return;
-        navigate(user ? '/home' : '/register', { replace: true });
+        if (!user) {
+          navigate('/register', { replace: true });
+          return;
+        }
+        navigate(user.isWhitelisted ? '/home' : '/waiting', { replace: true });
       })
       .catch(() => {
         if (!cancelled) navigate('/auth', { replace: true });

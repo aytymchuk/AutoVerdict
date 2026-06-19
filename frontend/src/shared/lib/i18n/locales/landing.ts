@@ -72,10 +72,7 @@ export const landing = {
     landing_cta_button: 'Join the whitelist →',
     landing_cta_disclaimer:
       '*By joining, you agree to our Terms of Service and Privacy Policy.',
-    landing_footer_privacy: 'Privacy Policy',
-    landing_footer_terms: 'Terms of Service',
     landing_footer_howItWorks: 'How it works',
-    landing_footer_copyright: '© 2026 AutoVerdikt. All rights reserved.',
     landing_footer_language: 'English',
   },
   pl: {
@@ -153,10 +150,7 @@ export const landing = {
     landing_cta_button: 'Dołącz do listy →',
     landing_cta_disclaimer:
       '*Dołączając, akceptujesz nasz Regulamin i Politykę prywatności.',
-    landing_footer_privacy: 'Polityka prywatności',
-    landing_footer_terms: 'Regulamin',
     landing_footer_howItWorks: 'Jak to działa',
-    landing_footer_copyright: '© 2026 AutoVerdikt. Wszelkie prawa zastrzeżone.',
     landing_footer_language: 'Polski',
   },
   uk: {
@@ -233,10 +227,7 @@ export const landing = {
     landing_cta_button: 'Приєднатися до списку →',
     landing_cta_disclaimer:
       "*Приєднуючись, ви погоджуєтесь з нашими Умовами використання та Політикою конфіденційності.",
-    landing_footer_privacy: 'Політика конфіденційності',
-    landing_footer_terms: 'Умови використання',
     landing_footer_howItWorks: 'Як це працює',
-    landing_footer_copyright: '© 2026 AutoVerdikt. Всі права захищені.',
     landing_footer_language: 'Українська',
   },
 } as const;

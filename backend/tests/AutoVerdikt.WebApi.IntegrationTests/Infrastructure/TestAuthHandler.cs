@@ -14,6 +14,9 @@ internal sealed class TestAuthHandler(
 {
     public const string SchemeName = "Test";
     public const string UserIdHeaderName = "X-Test-UserId";
+    public const string RoleHeaderName = "X-Test-Role";
+    public const string EmailHeaderName = "X-Test-Email";
+    public const string LocaleHeaderName = "X-Test-Locale";
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -24,9 +27,35 @@ internal sealed class TestAuthHandler(
         }
 
         var userId = userIdValues.ToString();
-        var identity = new ClaimsIdentity(
-            [new Claim(ClaimTypes.NameIdentifier, userId)],
-            SchemeName);
+        var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, userId) };
+
+        if (Request.Headers.TryGetValue(EmailHeaderName, out var emailValues)
+            && !string.IsNullOrWhiteSpace(emailValues.FirstOrDefault()))
+        {
+            claims.Add(new Claim(ClaimTypes.Email, emailValues.ToString()));
+        }
+        else
+        {
+            claims.Add(new Claim(ClaimTypes.Email, $"{userId}@example.com"));
+        }
+
+        if (Request.Headers.TryGetValue(LocaleHeaderName, out var localeValues)
+            && !string.IsNullOrWhiteSpace(localeValues.FirstOrDefault()))
+        {
+            claims.Add(new Claim("locale", localeValues.ToString()));
+        }
+        else
+        {
+            claims.Add(new Claim("locale", "en"));
+        }
+
+        if (Request.Headers.TryGetValue(RoleHeaderName, out var roleValues)
+            && !string.IsNullOrWhiteSpace(roleValues.FirstOrDefault()))
+        {
+            claims.Add(new Claim(ClaimTypes.Role, roleValues.ToString()));
+        }
+
+        var identity = new ClaimsIdentity(claims, SchemeName);
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, SchemeName);
 

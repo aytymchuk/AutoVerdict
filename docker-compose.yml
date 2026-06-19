@@ -8,9 +8,18 @@ services:
     env_file:
       - .env
     environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      # Clerk JWT validation — issuer and allowed frontend origin (azp / CORS).
+      Clerk__Authority: ${Clerk__Authority:-}
+      Clerk__AuthorizedParty: ${Clerk__AuthorizedParty:-http://localhost:5173}
       MongoDb__ConnectionString: mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-example}@mongodb:27017/?authSource=admin
       # Inside the compose network Seq is reachable by service name, not localhost.
       OpenTelemetry__Otlp__Endpoint: http://seq:80/ingest/otlp
+      # Whitelist gate (S-01.3). When true, only whitelisted users can access product routes.
+      WHITELIST_ENABLED: ${WHITELIST_ENABLED:-true}
+      SendGrid__ApiKey: ${SENDGRID_API_KEY:-}
+      SendGrid__FromEmail: ${SENDGRID_FROM_EMAIL:-}
+      SendGrid__SenderName: ${SENDGRID_SENDER_NAME:-AutoCheck AI}
     depends_on:
       - mongodb
       - azurite
@@ -23,17 +32,24 @@ services:
       retries: 3
 
   web:
-    profiles:
-      - production
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         - VITE_CLERK_PUBLISHABLE_KEY
     ports:
-      - "3000:3000"
+      - "5173:5173"
     env_file:
       - .env
+    environment:
+      NODE_ENV: development
+      VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
+      # Vite proxy target inside the compose network (browser still uses /api on :5173).
+      VITE_API_TARGET: http://api:8080
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - web_node_modules:/app/node_modules
     depends_on:
       api:
         condition: service_healthy
@@ -48,7 +64,6 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-example}
     volumes:
       - mongodb_data:/data/db
-
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     ports:
@@ -67,8 +82,7 @@ services:
       - .env
     environment:
       # Allow the browser-side OTLP trace exporter (frontend) to post cross-origin.
-      # 5173 = `pnpm dev`/`make dev`, 3000 = dockerized web (`make up-prod`).
-      SEQ_API_CORSALLOWEDORIGINS: "http://localhost:5173,http://localhost:3000"
+      SEQ_API_CORSALLOWEDORIGINS: "http://localhost:5173"
     volumes:
       - seq_data:/data
 
@@ -76,3 +90,4 @@ volumes:
   mongodb_data:
   azurite_data:
   seq_data:
+  web_node_modules:

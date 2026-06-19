@@ -61,4 +61,16 @@ public class UserAccountTests
 
         user.Id.ShouldNotBe(Guid.Empty);
     }
+
+    [Fact]
+    public void ChangeWhitelistStatus_ReturnsNewInstanceWithUpdatedStatus()
+    {
+        var user = UserAccount.Create("auth_abc", "Alice", "alice@example.com", TimeProvider.System);
+
+        user.WhitelistStatus.ShouldBe(WhitelistStatus.None);
+
+        var requested = user.ChangeWhitelistStatus(WhitelistStatus.Requested);
+        requested.WhitelistStatus.ShouldBe(WhitelistStatus.Requested);
+        user.WhitelistStatus.ShouldBe(WhitelistStatus.None);
+    }
 }
