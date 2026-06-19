@@ -16,7 +16,7 @@ services:
       # Inside the compose network Seq is reachable by service name, not localhost.
       OpenTelemetry__Otlp__Endpoint: http://seq:80/ingest/otlp
       # Whitelist gate (S-01.3). When true, only whitelisted users can access product routes.
-      WHITELIST_ENABLED: ${WHITELIST_ENABLED:-true}
+      WHITELIST_ENABLED: ${WHITELIST_ENABLED:-false}
       SendGrid__ApiKey: ${SENDGRID_API_KEY:-}
       SendGrid__FromEmail: ${SENDGRID_FROM_EMAIL:-}
       SendGrid__SenderName: ${SENDGRID_SENDER_NAME:-AutoCheck AI}

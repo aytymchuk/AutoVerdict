@@ -1,6 +1,4 @@
 using AutoVerdikt.Application.Whitelist.Errors;
-using FluentResults;
-using Mediator;
 
 namespace AutoVerdikt.Application.Whitelist.Admin.Remove;
 

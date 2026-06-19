@@ -1,6 +1,3 @@
-using FluentResults;
-using Mediator;
-
 namespace AutoVerdikt.Application.Whitelist.Admin.Add;
 
 public sealed class AddToWhitelistCommandHandler(IWhitelistService whitelistService)

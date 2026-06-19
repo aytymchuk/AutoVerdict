@@ -4,8 +4,6 @@ using AutoVerdikt.Application.Users;
 using AutoVerdikt.Application.Whitelist.Errors;
 using AutoVerdikt.Domain.Users;
 using AutoVerdikt.Domain.Whitelist;
-using FluentResults;
-using Mediator;
 
 namespace AutoVerdikt.Application.Whitelist.SubmitWaitlistRequest;
 

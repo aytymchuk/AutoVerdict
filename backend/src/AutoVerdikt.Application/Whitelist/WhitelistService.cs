@@ -2,17 +2,22 @@ using AutoVerdikt.Application.Common;
 using AutoVerdikt.Application.FeatureFlags;
 using AutoVerdikt.Application.Identity;
 using AutoVerdikt.Domain.Whitelist;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace AutoVerdikt.Application.Whitelist;
 
 public sealed class WhitelistService(
     IWhitelistRepository repository,
     IFeatureFlagService featureFlags,
-    IMemoryCache cache,
+    HybridCache cache,
     TimeProvider timeProvider) : IWhitelistService
 {
-    private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(60);
+    private static readonly HybridCacheEntryOptions CacheEntryOptions = new()
+    {
+        LocalCacheExpiration = TimeSpan.FromSeconds(60),
+        Expiration = TimeSpan.FromSeconds(60),
+    };
+
     private const string CacheKeyPrefix = "whitelist:";
 
     public async Task<bool> HasAccessAsync(string authId, CancellationToken cancellationToken = default)
@@ -28,12 +33,11 @@ public sealed class WhitelistService(
         var normalized = IdentityNormalizer.NormalizeAuthId(authId);
         var cacheKey = CacheKeyPrefix + normalized;
 
-        if (cache.TryGetValue(cacheKey, out bool cached))
-            return cached;
-
-        var exists = await repository.ExistsByAuthIdAsync(normalized, cancellationToken);
-        cache.Set(cacheKey, exists, CacheTtl);
-        return exists;
+        return await cache.GetOrCreateAsync(
+            cacheKey,
+            async ct => await repository.ExistsByAuthIdAsync(normalized, ct),
+            CacheEntryOptions,
+            cancellationToken: cancellationToken);
     }
 
     public async Task AddAsync(
@@ -44,22 +48,23 @@ public sealed class WhitelistService(
     {
         var normalizedAuthId = IdentityNormalizer.NormalizeAuthId(authId);
         var normalizedEmail = IdentityNormalizer.NormalizeEmail(email);
+        var cacheKey = CacheKeyPrefix + normalizedAuthId;
 
         if (await repository.ExistsByAuthIdAsync(normalizedAuthId, cancellationToken))
         {
-            cache.Set(CacheKeyPrefix + normalizedAuthId, true, CacheTtl);
+            await cache.SetAsync(cacheKey, true, CacheEntryOptions, cancellationToken: cancellationToken);
             return;
         }
 
         var entry = WhitelistEntry.Create(normalizedAuthId, normalizedEmail, addedBy, timeProvider);
         await repository.AddAsync(entry, cancellationToken);
-        cache.Set(CacheKeyPrefix + normalizedAuthId, true, CacheTtl);
+        await cache.SetAsync(cacheKey, true, CacheEntryOptions, cancellationToken: cancellationToken);
     }
 
     public async Task<bool> RemoveAsync(string authId, CancellationToken cancellationToken = default)
     {
         var normalized = IdentityNormalizer.NormalizeAuthId(authId);
-        cache.Remove(CacheKeyPrefix + normalized);
+        await cache.RemoveAsync(CacheKeyPrefix + normalized, cancellationToken);
         return await repository.RemoveByAuthIdAsync(normalized, cancellationToken);
     }
 
