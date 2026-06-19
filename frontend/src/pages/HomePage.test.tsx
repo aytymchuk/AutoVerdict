@@ -34,9 +34,10 @@ describe('HomePage', () => {
     });
   });
 
-  it('displays the user email address', () => {
+  it('renders the dashboard navigation links', () => {
     renderPage();
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'My Research' })).toHaveAttribute('href', '/home');
+    expect(screen.getByRole('link', { name: 'Credits' })).toHaveAttribute('href', '/credits');
   });
 
   it('shows a personalised welcome message with the first name', () => {
@@ -52,17 +53,17 @@ describe('HomePage', () => {
     expect(screen.getByText('Welcome! Your dashboard is coming soon.')).toBeInTheDocument();
   });
 
-  it('hides the email when there is no user', () => {
-    mockUseUser.mockReturnValue({ user: null });
+  it('shows the user initial in the account menu trigger', () => {
     renderPage();
-    expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open account menu' })).toHaveTextContent('J');
   });
 
   it('calls signOut with redirectUrl "/" when Sign out is clicked', async () => {
     mockSignOut.mockResolvedValue(undefined);
     renderPage();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open account menu' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }));
 
     await waitFor(() =>
       expect(mockSignOut).toHaveBeenCalledWith({ redirectUrl: '/' })
