@@ -22,17 +22,26 @@ export function PageShell({ children }: PageShellProps) {
           >
             AutoVerdikt
           </Link>
-          <button
-            type="button"
-            onClick={cycleLanguage}
-            aria-label={t('common_switch_language')}
-            className="flex items-center justify-center p-sm rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-risk-medium"
-          >
-            <span className="material-symbols-outlined text-[20px]">language</span>
-            <span className="ml-sm font-label-caps text-label-caps uppercase tracking-wider">
-              {language}
-            </span>
-          </button>
+          <div className="flex items-center gap-xs">
+            <Link
+              to="/profile"
+              aria-label="Profile settings"
+              className="flex items-center justify-center p-sm rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-risk-medium"
+            >
+              <span className="material-symbols-outlined text-[20px]">manage_accounts</span>
+            </Link>
+            <button
+              type="button"
+              onClick={cycleLanguage}
+              aria-label={t('common_switch_language')}
+              className="flex items-center justify-center p-sm rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-risk-medium"
+            >
+              <span className="material-symbols-outlined text-[20px]">language</span>
+              <span className="ml-sm font-label-caps text-label-caps uppercase tracking-wider">
+                {language}
+              </span>
+            </button>
+          </div>
         </div>
       </header>
 

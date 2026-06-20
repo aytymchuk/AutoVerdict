@@ -8,6 +8,8 @@ public record UserAccount
     public required string Email { get; init; }
     public required DateTimeOffset RegisteredAt { get; init; }
     public WhitelistStatus WhitelistStatus { get; init; } = WhitelistStatus.None;
+    public string? Language { get; init; }
+    public string? DefaultCurrency { get; init; }
 
     public static UserAccount Create(string authId, string name, string email, TimeProvider timeProvider)
     {
@@ -17,4 +19,7 @@ public record UserAccount
 
     public UserAccount ChangeWhitelistStatus(WhitelistStatus status) =>
         this with { WhitelistStatus = status };
+
+    public UserAccount UpdateProfile(string? language, string? defaultCurrency) =>
+        this with { Language = language, DefaultCurrency = defaultCurrency };
 }

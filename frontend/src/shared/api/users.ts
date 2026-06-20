@@ -11,12 +11,15 @@ export interface UserAccountDto {
   registeredAt: string;
   isWhitelisted: boolean;
   whitelistStatus: WhitelistStatus;
+  language?: string | null;
+  defaultCurrency?: string | null;
 }
 
 export interface IUsersApi {
   /** Returns null when the user is authenticated but not registered (404). */
   getMe(): Promise<UserAccountDto | null>;
   register(name: string, email: string): Promise<UserAccountDto>;
+  updateProfile(language: string | null, defaultCurrency: string | null): Promise<UserAccountDto>;
 }
 
 export class UsersApiClient extends ApiClient implements IUsersApi {
@@ -36,6 +39,21 @@ export class UsersApiClient extends ApiClient implements IUsersApi {
     const res = await this.request('users/register', {
       method: 'post',
       json: { name, email },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(body || `API error: ${res.statusText}`);
+    }
+    return res.json() as Promise<UserAccountDto>;
+  }
+
+  async updateProfile(
+    language: string | null,
+    defaultCurrency: string | null,
+  ): Promise<UserAccountDto> {
+    const res = await this.request('users/me/profile', {
+      method: 'patch',
+      json: { language, defaultCurrency },
     });
     if (!res.ok) {
       const body = await res.text();

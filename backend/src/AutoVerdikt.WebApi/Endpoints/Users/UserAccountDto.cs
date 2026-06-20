@@ -7,4 +7,6 @@ public sealed record UserAccountDto(
     string Email,
     DateTimeOffset RegisteredAt,
     bool IsWhitelisted,
-    string WhitelistStatus);
+    string WhitelistStatus,
+    string? Language,
+    string? DefaultCurrency);

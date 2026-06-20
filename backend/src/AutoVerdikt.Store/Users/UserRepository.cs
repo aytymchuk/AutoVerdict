@@ -28,7 +28,9 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
             Name = document.Name,
             Email = document.Email,
             RegisteredAt = new DateTimeOffset(document.RegisteredAt, TimeSpan.Zero),
-            WhitelistStatus = ParseWhitelistStatus(document.WhitelistStatus ?? document.LegacyWaitlistStatus)
+            WhitelistStatus = ParseWhitelistStatus(document.WhitelistStatus ?? document.LegacyWaitlistStatus),
+            Language = document.Language,
+            DefaultCurrency = document.DefaultCurrency
         };
     }
 
@@ -63,6 +65,15 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
             u => u.WhitelistStatus,
             ToWhitelistStatusString(user.WhitelistStatus));
 
+        await collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+    }
+
+    public async Task UpdateProfileAsync(UserAccount user, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<UserDocument>.Filter.Eq(u => u.AuthId, user.AuthId);
+        var update = Builders<UserDocument>.Update
+            .Set(u => u.Language, user.Language)
+            .Set(u => u.DefaultCurrency, user.DefaultCurrency);
         await collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
     }
 

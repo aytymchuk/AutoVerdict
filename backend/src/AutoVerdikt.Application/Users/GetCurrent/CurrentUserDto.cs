@@ -8,4 +8,6 @@ public sealed record CurrentUserDto(
     string Email,
     DateTimeOffset RegisteredAt,
     bool IsWhitelisted,
-    WhitelistStatus WhitelistStatus);
+    WhitelistStatus WhitelistStatus,
+    string? Language,
+    string? DefaultCurrency);
