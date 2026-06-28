@@ -2,6 +2,10 @@ export const profile = {
   en: {
     profile_title: 'Profile settings',
     profile_subtitle: 'Customize your language and currency preferences.',
+    profile_first_name_label: 'First name',
+    profile_last_name_label: 'Last name',
+    profile_email_label: 'Email',
+    profile_back_to_research: 'My Research',
     profile_language_label: 'Language',
     profile_language_browser: 'Browser default',
     profile_language_en: 'English',
@@ -17,6 +21,10 @@ export const profile = {
   pl: {
     profile_title: 'Ustawienia profilu',
     profile_subtitle: 'Dostosuj swoje preferencje językowe i walutowe.',
+    profile_first_name_label: 'Imię',
+    profile_last_name_label: 'Nazwisko',
+    profile_email_label: 'E-mail',
+    profile_back_to_research: 'Moje badania',
     profile_language_label: 'Język',
     profile_language_browser: 'Domyślny przeglądarki',
     profile_language_en: 'Angielski',
@@ -32,6 +40,10 @@ export const profile = {
   uk: {
     profile_title: 'Налаштування профілю',
     profile_subtitle: 'Налаштуйте мову та валюту.',
+    profile_first_name_label: "Ім'я",
+    profile_last_name_label: 'Прізвище',
+    profile_email_label: 'Електронна пошта',
+    profile_back_to_research: 'Мої дослідження',
     profile_language_label: 'Мова',
     profile_language_browser: 'Мова браузера',
     profile_language_en: 'Англійська',

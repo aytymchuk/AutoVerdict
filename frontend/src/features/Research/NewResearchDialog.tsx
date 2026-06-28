@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import type { CreateCarDataDto } from '../../shared/api/research';
 import { useResearchApi } from '../../shared/api/research';
+import { useUserStatus } from '../../shared/hooks/useUserStatus';
+import { useTranslation } from '../../shared/lib/i18n';
 import { formInputClassName } from '../../shared/styles/formInput';
 
 type InputTab = 'form' | 'text' | 'photos';
@@ -31,11 +33,6 @@ const emptyFormState: FormState = {
   description: '',
 };
 
-const tabs: { id: InputTab; icon: string; label: string; enabled: boolean }[] = [
-  { id: 'form', icon: 'assignment', label: 'Enter data', enabled: true },
-  { id: 'text', icon: 'content_paste', label: 'Paste text', enabled: false },
-  { id: 'photos', icon: 'photo_camera', label: 'Photos', enabled: false },
-];
 
 function parseOptionalInt(value: string): number | null {
   const trimmed = value.trim();
@@ -57,44 +54,47 @@ function parseOptionalDecimal(value: string): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-function buildCarPayload(form: FormState): CreateCarDataDto {
+const CURRENCIES = ['PLN', 'EUR', 'USD', 'UAH'] as const;
+type Currency = (typeof CURRENCIES)[number];
+
+function buildCarPayload(form: FormState, currency: Currency): CreateCarDataDto {
   return {
     make: form.make.trim() || null,
     model: form.model.trim() || null,
     year: parseOptionalInt(form.year),
     mileageKm: parseOptionalInt(form.mileageKm),
     price: parseOptionalDecimal(form.price),
-    currency: 'PLN',
+    currency,
     vin: form.vin.trim() || null,
   };
-}
-
-function validateForm(form: FormState): string | null {
-  if (!form.make.trim()) {
-    return 'Make is required.';
-  }
-  if (!form.model.trim()) {
-    return 'Model is required.';
-  }
-  if (!form.year.trim() || parseOptionalInt(form.year) === null) {
-    return 'Year is required.';
-  }
-  if (!form.mileageKm.trim() || parseOptionalInt(form.mileageKm) === null) {
-    return 'Mileage is required.';
-  }
-  if (!form.price.trim() || parseOptionalDecimal(form.price) === null) {
-    return 'Price is required.';
-  }
-
-  return null;
 }
 
 export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const researchApi = useResearchApi();
+  const { t } = useTranslation();
+  const { defaultCurrency } = useUserStatus();
+
+  const tabs = [
+    { id: 'form' as InputTab, icon: 'assignment', label: t('research_input_form'), enabled: true },
+    { id: 'text' as InputTab, icon: 'content_paste', label: t('research_input_text'), enabled: false },
+    { id: 'photos' as InputTab, icon: 'photo_camera', label: t('research_input_photos'), enabled: false },
+  ];
+
+  function validateForm(form: FormState): string | null {
+    if (!form.make.trim()) return t('dialog_error_make_required');
+    if (!form.model.trim()) return t('dialog_error_model_required');
+    if (!form.year.trim() || parseOptionalInt(form.year) === null) return t('dialog_error_year_required');
+    if (!form.mileageKm.trim() || parseOptionalInt(form.mileageKm) === null) return t('dialog_error_mileage_required');
+    if (!form.price.trim() || parseOptionalDecimal(form.price) === null) return t('dialog_error_price_required');
+    return null;
+  }
+  const defaultCurrencyValue: Currency =
+    CURRENCIES.includes(defaultCurrency as Currency) ? (defaultCurrency as Currency) : 'PLN';
   const [activeTab, setActiveTab] = useState<InputTab>('form');
   const [form, setForm] = useState<FormState>(emptyFormState);
+  const [currency, setCurrency] = useState<Currency>(defaultCurrencyValue);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -117,6 +117,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
   function resetState() {
     setActiveTab('form');
     setForm(emptyFormState);
+    setCurrency(defaultCurrencyValue);
     setSubmitting(false);
     setError(null);
   }
@@ -150,13 +151,13 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
     try {
       await researchApi.create({
         inputMethod: 'form',
-        car: buildCarPayload(form),
+        car: buildCarPayload(form, currency),
       });
       resetState();
       onCreated();
       onClose();
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Failed to create research.');
+    } catch {
+      setError(t('dialog_error_create'));
       setSubmitting(false);
     }
   }
@@ -178,7 +179,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
             type="button"
             onClick={handleClose}
             disabled={submitting}
-            aria-label="Close dialog"
+            aria-label={t('dialog_close')}
             className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
           >
             <span className="material-symbols-outlined text-[22px]" aria-hidden="true">
@@ -188,10 +189,10 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
 
           <div className="border-b border-outline-variant/20 px-6 pb-0 pt-8 sm:px-8">
             <h2 id={titleId} className="font-headline-md text-[28px] font-semibold text-on-surface">
-              New Research
+              {t('dialog_new_research_title')}
             </h2>
             <p className="mt-2 text-[14px] text-on-surface-variant">
-              Provide vehicle details to start an AI-powered listing analysis.
+              {t('dialog_new_research_subtitle')}
             </p>
 
             <div className="mt-6 flex gap-2 overflow-x-auto">
@@ -223,7 +224,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <label className="block space-y-2">
-                    <span className="text-[13px] font-medium text-on-surface-variant">Make</span>
+                    <span className="text-[13px] font-medium text-on-surface-variant">{t('dialog_field_make')}</span>
                     <input
                       type="text"
                       value={form.make}
@@ -234,7 +235,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                     />
                   </label>
                   <label className="block space-y-2">
-                    <span className="text-[13px] font-medium text-on-surface-variant">Model</span>
+                    <span className="text-[13px] font-medium text-on-surface-variant">{t('dialog_field_model')}</span>
                     <input
                       type="text"
                       value={form.model}
@@ -245,7 +246,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                     />
                   </label>
                   <label className="block space-y-2">
-                    <span className="text-[13px] font-medium text-on-surface-variant">Year</span>
+                    <span className="text-[13px] font-medium text-on-surface-variant">{t('dialog_field_year')}</span>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -256,7 +257,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                     />
                   </label>
                   <label className="block space-y-2">
-                    <span className="text-[13px] font-medium text-on-surface-variant">Mileage</span>
+                    <span className="text-[13px] font-medium text-on-surface-variant">{t('dialog_field_mileage')}</span>
                     <div className="relative">
                       <input
                         type="number"
@@ -272,24 +273,32 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                     </div>
                   </label>
                   <label className="block space-y-2">
-                    <span className="text-[13px] font-medium text-on-surface-variant">Price</span>
-                    <div className="relative">
+                    <span className="text-[13px] font-medium text-on-surface-variant">{t('dialog_field_price')}</span>
+                    <div className="flex gap-2">
                       <input
                         type="number"
                         inputMode="decimal"
                         value={form.price}
                         onChange={(event) => updateField('price', event.target.value)}
-                        className={formInputClassName}
+                        className={`${formInputClassName} min-w-0 flex-1`}
                         disabled={submitting}
                       />
-                      <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-on-surface-variant">
-                        PLN
-                      </span>
+                      <select
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value as Currency)}
+                        disabled={submitting}
+                        aria-label="Currency"
+                        className="appearance-none rounded-lg border border-surface-variant bg-surface-alt px-3 py-[14px] text-[13px] font-medium text-on-surface focus:outline-none focus:ring-2 focus:ring-risk-medium/50 focus:border-risk-medium transition-all shadow-sm cursor-pointer"
+                      >
+                        {CURRENCIES.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
                     </div>
                   </label>
                   <label className="block space-y-2">
                     <span className="text-[13px] font-medium text-on-surface-variant">
-                      VIN <span className="text-on-surface-variant/70">Optional</span>
+                      {t('dialog_field_vin')} <span className="text-on-surface-variant/70">{t('dialog_field_vin_optional')}</span>
                     </span>
                     <input
                       type="text"
@@ -304,7 +313,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
 
                 <label className="block space-y-2">
                   <span className="text-[13px] font-medium text-on-surface-variant">
-                    Listing Description
+                    {t('dialog_field_description')}
                   </span>
                   <textarea
                     value={form.description}
@@ -317,7 +326,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                     <span className="material-symbols-outlined mt-0.5 text-[16px]" aria-hidden="true">
                       info
                     </span>
-                    Our AI will extract relevant specs, history, and potential red flags automatically.
+                    {t('dialog_field_description_hint')}
                   </p>
                 </label>
 
@@ -335,14 +344,14 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                   <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                     analytics
                   </span>
-                  {submitting ? 'Starting analysis...' : 'Start AI Analysis'}
+                  {submitting ? t('dialog_submitting') : t('dialog_submit')}
                 </button>
               </form>
             )}
 
             {activeTab === 'text' && (
               <div className="rounded-2xl border border-outline-variant/20 bg-surface-container px-6 py-10 text-center text-on-surface-variant">
-                Paste text analysis is coming soon.
+                {t('dialog_text_soon')}
               </div>
             )}
 
@@ -354,14 +363,14 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                 >
                   cloud_upload
                 </span>
-                <p className="mt-4 text-[15px] font-medium text-on-surface">Vehicle Imagery</p>
+                <p className="mt-4 text-[15px] font-medium text-on-surface">{t('dialog_photos_title')}</p>
                 <p className="mt-2 text-[14px] text-on-surface-variant">
-                  Drag and drop photos here or click to browse from your device
+                  {t('dialog_photos_drag')}
                 </p>
                 <p className="mt-2 text-[12px] text-on-surface-variant/70">
-                  JPG, PNG, HEIC up to 10MB each
+                  {t('dialog_photos_format')}
                 </p>
-                <p className="mt-6 text-[13px] text-on-surface-variant">Photo uploads are coming soon.</p>
+                <p className="mt-6 text-[13px] text-on-surface-variant">{t('dialog_photos_soon')}</p>
               </div>
             )}
           </div>

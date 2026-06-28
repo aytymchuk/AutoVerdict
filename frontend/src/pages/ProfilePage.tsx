@@ -1,11 +1,10 @@
 import { useUser } from '@clerk/clerk-react';
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { useUsersApi } from '../shared/api/users';
 import { useUserStatus } from '../shared/hooks/useUserStatus';
 import { useTranslation } from '../shared/lib/i18n';
-import { PageShell } from '../shared/components/PageShell';
-import { formInputClassName } from '../shared/styles/formInput';
+import { AppLayout } from '../shared/components/AppLayout';
+import { formInputClassName, selectInputClassName, selectWrapperClassName } from '../shared/styles/formInput';
 import type { Language } from '../shared/lib/i18n/types';
 
 type LanguageOption = Language | '';
@@ -26,13 +25,11 @@ export function ProfilePage() {
     (profileCurrency as CurrencyOption) ?? '',
   );
   const [submitting, setSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setSuccessMessage('');
-    setErrorMessage('');
+    setSaveStatus('idle');
     setSubmitting(true);
 
     try {
@@ -43,49 +40,25 @@ export function ProfilePage() {
       if (selectedLanguage) {
         setLanguage(selectedLanguage as Language);
       }
-      setSuccessMessage(t('profile_save_success'));
+      setSaveStatus('success');
     } catch {
-      setErrorMessage(t('profile_error_generic'));
+      setSaveStatus('error');
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <PageShell>
-      <div className="mb-md">
-        <Link
-          to="/home"
-          className="inline-flex items-center gap-1 text-[14px] text-on-surface-variant hover:text-on-surface transition-colors"
-        >
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          My Research
-        </Link>
-      </div>
-
+    <AppLayout>
+      <div className="mx-auto w-full max-w-3xl px-gutter py-xl">
       {/* Heading block */}
       <div className="mb-lg md:mb-xl">
-        <h1 className="font-headline-lg text-[36px] md:text-[48px] leading-tight font-semibold text-on-surface tracking-tight mb-md">
+        <h1 className="heading-page mb-md">
           {t('profile_title')}
         </h1>
         <p className="font-body-lg text-[18px] text-text-secondary max-w-2xl leading-relaxed">
           {t('profile_subtitle')}
         </p>
-        <div className="mt-md flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-high text-[16px] font-medium text-on-surface">
-            {user?.firstName?.charAt(0).toUpperCase() ??
-              user?.primaryEmailAddress?.emailAddress?.charAt(0).toUpperCase() ??
-              '?'}
-          </div>
-          <div>
-            <p className="text-[15px] font-medium text-on-surface">
-              {[user?.firstName, user?.lastName].filter(Boolean).join(' ') || '—'}
-            </p>
-            <p className="text-[13px] text-on-surface-variant">
-              {user?.primaryEmailAddress?.emailAddress ?? ''}
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Settings card */}
@@ -97,21 +70,21 @@ export function ProfilePage() {
         <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-risk-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         <div className="flex flex-col gap-lg">
-          {successMessage && (
+          {saveStatus === 'success' && (
             <p
               role="status"
               className="text-[14px] leading-snug bg-surface-variant/30 border border-outline-variant/30 rounded-lg px-md py-sm text-on-surface"
             >
-              {successMessage}
+              {t('profile_save_success')}
             </p>
           )}
 
-          {errorMessage && (
+          {saveStatus === 'error' && (
             <p
               role="alert"
               className="text-error text-[14px] leading-snug bg-error-container/20 border border-error/30 rounded-lg px-md py-sm"
             >
-              {errorMessage}
+              {t('profile_error_generic')}
             </p>
           )}
 
@@ -121,7 +94,7 @@ export function ProfilePage() {
               htmlFor="profile-first-name"
               className="font-body-sm text-[14px] text-on-surface font-medium"
             >
-              First name
+              {t('profile_first_name_label')}
             </label>
             <input
               id="profile-first-name"
@@ -138,7 +111,7 @@ export function ProfilePage() {
               htmlFor="profile-last-name"
               className="font-body-sm text-[14px] text-on-surface font-medium"
             >
-              Last name
+              {t('profile_last_name_label')}
             </label>
             <input
               id="profile-last-name"
@@ -152,7 +125,7 @@ export function ProfilePage() {
           {/* Email (read-only) */}
           <div className="flex flex-col gap-sm">
             <label className="font-body-sm text-[14px] text-on-surface font-medium">
-              Email
+              {t('profile_email_label')}
             </label>
             <div className={`${formInputClassName} cursor-default select-all text-on-surface-variant`}>
               {user?.primaryEmailAddress?.emailAddress ?? ''}
@@ -167,17 +140,25 @@ export function ProfilePage() {
             >
               {t('profile_language_label')}
             </label>
-            <select
-              id="profile-language"
-              value={selectedLanguage}
-              onChange={e => setSelectedLanguage(e.target.value as LanguageOption)}
-              className={formInputClassName}
-            >
-              <option value="">{t('profile_language_browser')}</option>
-              <option value="en">{t('profile_language_en')}</option>
-              <option value="pl">{t('profile_language_pl')}</option>
-              <option value="uk">{t('profile_language_uk')}</option>
-            </select>
+            <div className={selectWrapperClassName}>
+              <select
+                id="profile-language"
+                value={selectedLanguage}
+                onChange={e => setSelectedLanguage(e.target.value as LanguageOption)}
+                className={selectInputClassName}
+              >
+                <option value="">{t('profile_language_browser')}</option>
+                <option value="en">{t('profile_language_en')}</option>
+                <option value="pl">{t('profile_language_pl')}</option>
+                <option value="uk">{t('profile_language_uk')}</option>
+              </select>
+              <span
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-[20px] text-on-surface-variant"
+                aria-hidden="true"
+              >
+                expand_more
+              </span>
+            </div>
           </div>
 
           {/* Currency selector */}
@@ -188,18 +169,26 @@ export function ProfilePage() {
             >
               {t('profile_currency_label')}
             </label>
-            <select
-              id="profile-currency"
-              value={selectedCurrency}
-              onChange={e => setSelectedCurrency(e.target.value as CurrencyOption)}
-              className={formInputClassName}
-            >
-              <option value="">{t('profile_currency_none')}</option>
-              <option value="PLN">PLN — Polish Złoty</option>
-              <option value="UAH">UAH — Ukrainian Hryvnia</option>
-              <option value="EUR">EUR — Euro</option>
-              <option value="USD">USD — US Dollar</option>
-            </select>
+            <div className={selectWrapperClassName}>
+              <select
+                id="profile-currency"
+                value={selectedCurrency}
+                onChange={e => setSelectedCurrency(e.target.value as CurrencyOption)}
+                className={selectInputClassName}
+              >
+                <option value="">{t('profile_currency_none')}</option>
+                <option value="PLN">PLN — Polish Złoty</option>
+                <option value="UAH">UAH — Ukrainian Hryvnia</option>
+                <option value="EUR">EUR — Euro</option>
+                <option value="USD">USD — US Dollar</option>
+              </select>
+              <span
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-[20px] text-on-surface-variant"
+                aria-hidden="true"
+              >
+                expand_more
+              </span>
+            </div>
           </div>
 
           {/* Submit */}
@@ -214,6 +203,7 @@ export function ProfilePage() {
           </div>
         </div>
       </form>
-    </PageShell>
+      </div>
+    </AppLayout>
   );
 }
