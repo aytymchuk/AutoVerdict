@@ -99,8 +99,8 @@ export function AppNav() {
                 role="menu"
                 className="absolute right-0 top-full mt-2 min-w-[12rem] rounded-xl border border-outline-variant/20 bg-surface-container-high py-2 shadow-lg"
               >
-                <button
-                  type="button"
+                <Link
+                  to="/profile"
                   role="menuitem"
                   onClick={() => setMenuOpen(false)}
                   className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-[14px] text-on-surface transition-colors hover:bg-surface-variant/50"
@@ -109,7 +109,7 @@ export function AppNav() {
                     person
                   </span>
                   Profile
-                </button>
+                </Link>
                 <button
                   type="button"
                   role="menuitem"
