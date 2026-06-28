@@ -19,11 +19,17 @@ export function ResearchList({
   onNewResearch,
   onLoadMore,
 }: ResearchListProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
-  const countLabel = (
-    total === 1 ? t('research_list_count_one') : t('research_list_count_many')
-  ).replace('{count}', String(total));
+  const pluralLocale = language === 'pl' ? 'pl-PL' : language === 'uk' ? 'uk-UA' : 'en-US';
+  const pluralForm = new Intl.PluralRules(pluralLocale).select(total);
+  const pluralKey =
+    pluralForm === 'one'
+      ? 'research_list_count_one'
+      : pluralForm === 'few'
+        ? 'research_list_count_few'
+        : 'research_list_count_many';
+  const countLabel = t(pluralKey).replace('{count}', String(total));
 
   return (
     <div className="mx-auto w-full max-w-[960px] px-gutter py-10">

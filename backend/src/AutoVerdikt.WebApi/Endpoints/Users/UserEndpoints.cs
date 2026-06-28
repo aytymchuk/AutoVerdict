@@ -1,7 +1,6 @@
 using AutoVerdikt.Application.Users.GetCurrent;
 using AutoVerdikt.Application.Users.Register;
 using AutoVerdikt.Application.Users.UpdateProfile;
-using AutoVerdikt.Application.Whitelist;
 using AutoVerdikt.WebApi.Extensions;
 using Mediator;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
@@ -13,18 +12,17 @@ internal static class UserEndpoints
     internal static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapPost(UserEndpointConstants.RegisterRoute,
-            async (UserRegistrationDto dto, IMediator mediator, IWhitelistService whitelistService, CancellationToken ct) =>
+            async (UserRegistrationDto dto, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new UserRegisterCommand(dto.Name, dto.Email), ct);
                 if (result.IsFailed)
                     return result.ToProblemResult();
 
                 var u = result.Value;
-                var hasAccess = await whitelistService.HasAccessAsync(u.AuthId, ct);
                 return Results.Created(
                     UserEndpointConstants.GetCurrentRoute,
                     new UserAccountDto(u.Id, u.Name, u.Email, u.RegisteredAt,
-                        IsWhitelisted: hasAccess,
+                        IsWhitelisted: false,
                         WhitelistStatus: u.WhitelistStatus.ToString().ToLowerInvariant(),
                         Language: null, DefaultCurrency: null));
             })

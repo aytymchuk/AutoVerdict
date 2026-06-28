@@ -25,6 +25,17 @@ vi.mock('../shared/api/research', () => ({
   }),
 }));
 
+vi.mock('../shared/hooks/useUserStatus', () => ({
+  useUserStatus: () => ({
+    status: 'registered',
+    language: null,
+    defaultCurrency: null,
+    email: null,
+    whitelistStatus: 'none',
+    refetch: vi.fn(),
+  }),
+}));
+
 function renderPage() {
   return render(
     <MemoryRouter initialEntries={['/home']}>

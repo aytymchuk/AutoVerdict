@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useUsersApi } from '../shared/api/users';
 import { useUserStatus } from '../shared/hooks/useUserStatus';
 import { useTranslation } from '../shared/lib/i18n';
+import { resolveBrowserLanguage } from '../shared/lib/i18n/language';
 import { AppLayout } from '../shared/components/AppLayout';
 import { formInputClassName, selectInputClassName, selectWrapperClassName } from '../shared/styles/formInput';
 import type { Language } from '../shared/lib/i18n/types';
@@ -38,9 +39,7 @@ export function ProfilePage() {
         usersApi.updateProfile(selectedLanguage || null, selectedCurrency || null),
       ]);
       await refetch();
-      if (selectedLanguage) {
-        setLanguage(selectedLanguage as Language);
-      }
+      setLanguage(selectedLanguage ? (selectedLanguage as Language) : resolveBrowserLanguage());
       setSaveStatus('success');
     } catch {
       setSaveStatus('error');

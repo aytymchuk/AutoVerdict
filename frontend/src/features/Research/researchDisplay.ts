@@ -22,6 +22,7 @@ export function formatResearchSubtitle(
   research: ResearchListItemDto,
   noDetailsLabel: string,
   detailsPendingLabel: string,
+  formatCurrency?: (value: number) => string,
 ): string {
   const { car } = research;
   if (!car) {
@@ -33,7 +34,7 @@ export function formatResearchSubtitle(
     parts.push(`${car.mileageKm.toLocaleString()} km`);
   }
   if (car.price != null) {
-    parts.push(`${car.price.toLocaleString()} PLN`);
+    parts.push(formatCurrency ? formatCurrency(car.price) : `${car.price.toLocaleString()} PLN`);
   }
 
   return parts.length > 0 ? parts.join(' · ') : detailsPendingLabel;

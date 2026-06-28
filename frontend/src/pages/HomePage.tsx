@@ -17,7 +17,7 @@ export function HomePage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [loadFailed, setLoadFailed] = useState(false);
+  const [initialLoadFailed, setInitialLoadFailed] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
 
   const applyListResult = useCallback(
@@ -37,12 +37,12 @@ export function HomePage() {
       .then((result) => {
         if (!cancelled) {
           applyListResult(result, 1, false);
-          setLoadFailed(false);
+          setInitialLoadFailed(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setLoadFailed(true);
+          setInitialLoadFailed(true);
         }
       })
       .finally(() => {
@@ -58,13 +58,12 @@ export function HomePage() {
 
   const refreshResearches = useCallback(async () => {
     setLoading(true);
-    setLoadFailed(false);
 
     try {
       const result = await researchApi.list(1, PAGE_SIZE);
       applyListResult(result, 1, false);
     } catch {
-      setLoadFailed(true);
+      // silently fail: existing data stays visible
     } finally {
       setLoading(false);
     }
@@ -84,7 +83,7 @@ export function HomePage() {
       const result = await researchApi.list(page + 1, PAGE_SIZE);
       applyListResult(result, page + 1, true);
     } catch {
-      setLoadFailed(true);
+      // silently fail: existing data stays visible
     } finally {
       setLoadingMore(false);
     }
@@ -102,7 +101,7 @@ export function HomePage() {
           <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
           <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
         </div>
-      ) : loadFailed ? (
+      ) : initialLoadFailed ? (
         <div className="mx-auto flex w-full max-w-[720px] flex-col items-center gap-4 px-gutter py-16 text-center">
           <span className="material-symbols-outlined text-[48px] text-risk-high" aria-hidden="true">
             error
