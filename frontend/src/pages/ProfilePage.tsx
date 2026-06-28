@@ -1,4 +1,6 @@
+import { useUser } from '@clerk/clerk-react';
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useUsersApi } from '../shared/api/users';
 import { useUserStatus } from '../shared/hooks/useUserStatus';
 import { useTranslation } from '../shared/lib/i18n';
@@ -10,10 +12,13 @@ type LanguageOption = Language | '';
 type CurrencyOption = 'PLN' | 'UAH' | 'EUR' | 'USD' | '';
 
 export function ProfilePage() {
+  const { user } = useUser();
   const usersApi = useUsersApi();
   const { language: profileLanguage, defaultCurrency: profileCurrency } = useUserStatus();
   const { t, setLanguage } = useTranslation();
 
+  const [firstName, setFirstName] = useState(user?.firstName ?? '');
+  const [lastName, setLastName] = useState(user?.lastName ?? '');
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(
     (profileLanguage as LanguageOption) ?? '',
   );
@@ -31,10 +36,10 @@ export function ProfilePage() {
     setSubmitting(true);
 
     try {
-      await usersApi.updateProfile(
-        selectedLanguage || null,
-        selectedCurrency || null,
-      );
+      await Promise.all([
+        user?.update({ firstName: firstName.trim(), lastName: lastName.trim() }),
+        usersApi.updateProfile(selectedLanguage || null, selectedCurrency || null),
+      ]);
       if (selectedLanguage) {
         setLanguage(selectedLanguage as Language);
       }
@@ -48,6 +53,16 @@ export function ProfilePage() {
 
   return (
     <PageShell>
+      <div className="mb-md">
+        <Link
+          to="/home"
+          className="inline-flex items-center gap-1 text-[14px] text-on-surface-variant hover:text-on-surface transition-colors"
+        >
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          My Research
+        </Link>
+      </div>
+
       {/* Heading block */}
       <div className="mb-lg md:mb-xl">
         <h1 className="font-headline-lg text-[36px] md:text-[48px] leading-tight font-semibold text-on-surface tracking-tight mb-md">
@@ -56,6 +71,21 @@ export function ProfilePage() {
         <p className="font-body-lg text-[18px] text-text-secondary max-w-2xl leading-relaxed">
           {t('profile_subtitle')}
         </p>
+        <div className="mt-md flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-high text-[16px] font-medium text-on-surface">
+            {user?.firstName?.charAt(0).toUpperCase() ??
+              user?.primaryEmailAddress?.emailAddress?.charAt(0).toUpperCase() ??
+              '?'}
+          </div>
+          <div>
+            <p className="text-[15px] font-medium text-on-surface">
+              {[user?.firstName, user?.lastName].filter(Boolean).join(' ') || '—'}
+            </p>
+            <p className="text-[13px] text-on-surface-variant">
+              {user?.primaryEmailAddress?.emailAddress ?? ''}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Settings card */}
@@ -84,6 +114,50 @@ export function ProfilePage() {
               {errorMessage}
             </p>
           )}
+
+          {/* First name */}
+          <div className="flex flex-col gap-sm">
+            <label
+              htmlFor="profile-first-name"
+              className="font-body-sm text-[14px] text-on-surface font-medium"
+            >
+              First name
+            </label>
+            <input
+              id="profile-first-name"
+              type="text"
+              value={firstName}
+              onChange={e => setFirstName(e.target.value)}
+              className={formInputClassName}
+            />
+          </div>
+
+          {/* Last name */}
+          <div className="flex flex-col gap-sm">
+            <label
+              htmlFor="profile-last-name"
+              className="font-body-sm text-[14px] text-on-surface font-medium"
+            >
+              Last name
+            </label>
+            <input
+              id="profile-last-name"
+              type="text"
+              value={lastName}
+              onChange={e => setLastName(e.target.value)}
+              className={formInputClassName}
+            />
+          </div>
+
+          {/* Email (read-only) */}
+          <div className="flex flex-col gap-sm">
+            <label className="font-body-sm text-[14px] text-on-surface font-medium">
+              Email
+            </label>
+            <div className={`${formInputClassName} cursor-default select-all text-on-surface-variant`}>
+              {user?.primaryEmailAddress?.emailAddress ?? ''}
+            </div>
+          </div>
 
           {/* Language selector */}
           <div className="flex flex-col gap-sm">
