@@ -94,7 +94,9 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
     CURRENCIES.includes(defaultCurrency as Currency) ? (defaultCurrency as Currency) : 'PLN';
   const [activeTab, setActiveTab] = useState<InputTab>('form');
   const [form, setForm] = useState<FormState>(emptyFormState);
-  const [currency, setCurrency] = useState<Currency>(defaultCurrencyValue);
+  // null means "follow profile default"; set to a specific value when the user picks one
+  const [currencyOverride, setCurrencyOverride] = useState<Currency | null>(null);
+  const currency = currencyOverride ?? defaultCurrencyValue;
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,16 +116,10 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) {
-      setCurrency(defaultCurrencyValue);
-    }
-  }, [defaultCurrencyValue, open]);
-
   function resetState() {
     setActiveTab('form');
     setForm(emptyFormState);
-    setCurrency(defaultCurrencyValue);
+    setCurrencyOverride(null);
     setSubmitting(false);
     setError(null);
   }
@@ -291,7 +287,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                       />
                       <select
                         value={currency}
-                        onChange={(e) => setCurrency(e.target.value as Currency)}
+                        onChange={(e) => setCurrencyOverride(e.target.value as Currency)}
                         disabled={submitting}
                         aria-label={t('dialog_field_currency')}
                         className="appearance-none rounded-lg border border-surface-variant bg-surface-alt px-3 py-[14px] text-[13px] font-medium text-on-surface focus:outline-none focus:ring-2 focus:ring-risk-medium/50 focus:border-risk-medium transition-all shadow-sm cursor-pointer"
