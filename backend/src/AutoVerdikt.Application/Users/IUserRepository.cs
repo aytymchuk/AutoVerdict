@@ -10,5 +10,5 @@ public interface IUserRepository
     Task UpdateWhitelistStatusAsync(
         UserAccount user,
         CancellationToken cancellationToken = default);
-    Task UpdateProfileAsync(UserAccount user, CancellationToken cancellationToken = default);
+    Task<Result> UpdateProfileAsync(UserAccount user, CancellationToken cancellationToken = default);
 }

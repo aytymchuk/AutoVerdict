@@ -21,7 +21,9 @@ public sealed class UpdateUserProfileCommandHandler(
             return Result.Fail(new UserNotFoundError());
 
         var updated = user.UpdateProfile(command.Language, command.DefaultCurrency);
-        await repository.UpdateProfileAsync(updated, cancellationToken);
+        var updateResult = await repository.UpdateProfileAsync(updated, cancellationToken);
+        if (updateResult.IsFailed)
+            return updateResult;
 
         var hasAccess = await whitelistService.HasAccessAsync(currentUser.AuthId, cancellationToken);
         return Result.Ok(new CurrentUserDto(

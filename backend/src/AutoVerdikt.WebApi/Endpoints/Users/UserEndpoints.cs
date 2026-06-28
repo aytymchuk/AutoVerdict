@@ -1,6 +1,7 @@
 using AutoVerdikt.Application.Users.GetCurrent;
 using AutoVerdikt.Application.Users.Register;
 using AutoVerdikt.Application.Users.UpdateProfile;
+using AutoVerdikt.Application.Whitelist;
 using AutoVerdikt.WebApi.Extensions;
 using Mediator;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
@@ -12,16 +13,20 @@ internal static class UserEndpoints
     internal static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapPost(UserEndpointConstants.RegisterRoute,
-            async (UserRegistrationDto dto, IMediator mediator, CancellationToken ct) =>
+            async (UserRegistrationDto dto, IMediator mediator, IWhitelistService whitelistService, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new UserRegisterCommand(dto.Name, dto.Email), ct);
                 if (result.IsFailed)
                     return result.ToProblemResult();
 
                 var u = result.Value;
+                var hasAccess = await whitelistService.HasAccessAsync(u.AuthId, ct);
                 return Results.Created(
                     UserEndpointConstants.GetCurrentRoute,
-                    new UserAccountDto(u.Id, u.Name, u.Email, u.RegisteredAt, IsWhitelisted: true, WhitelistStatus: "none", Language: null, DefaultCurrency: null));
+                    new UserAccountDto(u.Id, u.Name, u.Email, u.RegisteredAt,
+                        IsWhitelisted: hasAccess,
+                        WhitelistStatus: u.WhitelistStatus.ToString().ToLowerInvariant(),
+                        Language: null, DefaultCurrency: null));
             })
             .WithName(UserEndpointConstants.RegisterName)
             .WithSummary(UserEndpointConstants.RegisterSummary)
@@ -61,7 +66,9 @@ internal static class UserEndpoints
             async (UpdateUserProfileDto dto, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(
-                    new UpdateUserProfileCommand(dto.Language, dto.DefaultCurrency), ct);
+                    new UpdateUserProfileCommand(
+                        string.IsNullOrWhiteSpace(dto.Language) ? null : dto.Language,
+                        string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? null : dto.DefaultCurrency), ct);
                 if (result.IsFailed)
                     return result.ToProblemResult();
 

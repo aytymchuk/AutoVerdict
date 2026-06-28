@@ -10,11 +10,11 @@ public sealed class UpdateUserProfileDtoValidator : AbstractValidator<UpdateUser
     public UpdateUserProfileDtoValidator()
     {
         RuleFor(x => x.Language)
-            .Must(v => v is null || AllowedLanguages.Contains(v))
+            .Must(v => string.IsNullOrWhiteSpace(v) || AllowedLanguages.Contains(v))
             .WithMessage("Language must be one of: en, pl, uk, or null.");
 
         RuleFor(x => x.DefaultCurrency)
-            .Must(v => v is null || AllowedCurrencies.Contains(v))
+            .Must(v => string.IsNullOrWhiteSpace(v) || AllowedCurrencies.Contains(v))
             .WithMessage("DefaultCurrency must be one of: PLN, UAH, EUR, USD, or null.");
     }
 }

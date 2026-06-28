@@ -25,7 +25,7 @@ export function PageShell({ children }: PageShellProps) {
           <div className="flex items-center gap-xs">
             <Link
               to="/profile"
-              aria-label="Profile settings"
+              aria-label={t('profile_title')}
               className="flex items-center justify-center p-sm rounded-full text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-risk-medium"
             >
               <span className="material-symbols-outlined text-[20px]">manage_accounts</span>

@@ -13,7 +13,7 @@ type CurrencyOption = 'PLN' | 'UAH' | 'EUR' | 'USD' | '';
 export function ProfilePage() {
   const { user } = useUser();
   const usersApi = useUsersApi();
-  const { language: profileLanguage, defaultCurrency: profileCurrency } = useUserStatus();
+  const { language: profileLanguage, defaultCurrency: profileCurrency, refetch } = useUserStatus();
   const { t, setLanguage } = useTranslation();
 
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
@@ -37,6 +37,7 @@ export function ProfilePage() {
         user?.update({ firstName: firstName.trim(), lastName: lastName.trim() }),
         usersApi.updateProfile(selectedLanguage || null, selectedCurrency || null),
       ]);
+      await refetch();
       if (selectedLanguage) {
         setLanguage(selectedLanguage as Language);
       }
@@ -177,10 +178,10 @@ export function ProfilePage() {
                 className={selectInputClassName}
               >
                 <option value="">{t('profile_currency_none')}</option>
-                <option value="PLN">PLN — Polish Złoty</option>
-                <option value="UAH">UAH — Ukrainian Hryvnia</option>
-                <option value="EUR">EUR — Euro</option>
-                <option value="USD">USD — US Dollar</option>
+                <option value="PLN">{t('profile_currency_pln')}</option>
+                <option value="UAH">{t('profile_currency_uah')}</option>
+                <option value="EUR">{t('profile_currency_eur')}</option>
+                <option value="USD">{t('profile_currency_usd')}</option>
               </select>
               <span
                 className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-[20px] text-on-surface-variant"

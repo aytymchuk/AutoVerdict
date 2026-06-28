@@ -68,13 +68,16 @@ internal sealed class UserRepository(IMongoCollection<UserDocument> collection) 
         await collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
     }
 
-    public async Task UpdateProfileAsync(UserAccount user, CancellationToken cancellationToken = default)
+    public async Task<Result> UpdateProfileAsync(UserAccount user, CancellationToken cancellationToken = default)
     {
         var filter = Builders<UserDocument>.Filter.Eq(u => u.AuthId, user.AuthId);
         var update = Builders<UserDocument>.Update
             .Set(u => u.Language, user.Language)
             .Set(u => u.DefaultCurrency, user.DefaultCurrency);
-        await collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+        var result = await collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+        return result.MatchedCount == 0
+            ? Result.Fail(new UserNotFoundError())
+            : Result.Ok();
     }
 
     private static string ToWhitelistStatusString(WhitelistStatus status) => status switch
