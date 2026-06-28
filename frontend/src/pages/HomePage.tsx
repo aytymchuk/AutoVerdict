@@ -79,7 +79,6 @@ export function HomePage() {
     }
 
     setLoadingMore(true);
-    setError(null);
 
     try {
       const result = await researchApi.list(page + 1, PAGE_SIZE);
