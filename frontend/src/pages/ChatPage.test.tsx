@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { ChatPage } from './ChatPage';
 import '@testing-library/jest-dom';
 
@@ -9,6 +10,13 @@ vi.mock('@clerk/clerk-react', () => {
     SignedIn: ({ children }: { children: React.ReactNode }) => <div data-testid="signed-in">{children}</div>,
     SignedOut: ({ children }: { children: React.ReactNode }) => <div data-testid="signed-out">{children}</div>,
     SignInButton: ({ children }: { children: React.ReactNode }) => <div data-testid="signin-button">{children}</div>,
+    useUser: () => ({
+      user: {
+        firstName: 'Jane',
+        primaryEmailAddress: { emailAddress: 'jane@example.com' },
+      },
+    }),
+    useClerk: () => ({ signOut: vi.fn() }),
   };
 });
 
@@ -35,7 +43,11 @@ describe('ChatPage', () => {
   });
 
   it('renders page headers and structure correctly', () => {
-    render(<ChatPage />);
+    render(
+      <MemoryRouter>
+        <ChatPage />
+      </MemoryRouter>
+    );
     expect(screen.getByText('Vehicle Investigation Assistant')).toBeInTheDocument();
     expect(
       screen.getByText('Ask questions about vehicle history, CEPiK records, or upload documents for analysis.')
@@ -43,7 +55,11 @@ describe('ChatPage', () => {
   });
 
   it('renders SignedIn and SignedOut wrappers', () => {
-    render(<ChatPage />);
+    render(
+      <MemoryRouter>
+        <ChatPage />
+      </MemoryRouter>
+    );
     expect(screen.getByTestId('signed-in')).toBeInTheDocument();
     expect(screen.getByTestId('signed-out')).toBeInTheDocument();
   });

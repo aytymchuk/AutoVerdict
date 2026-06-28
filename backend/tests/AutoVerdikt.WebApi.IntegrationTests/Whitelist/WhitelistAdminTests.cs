@@ -35,7 +35,7 @@ public sealed class WhitelistAdminTests(AutoVerdiktWebApiFactory factory) : Whit
 
         var response = await client.PostAsJsonAsync(
             WhitelistAdminEndpointConstants.WhitelistRoute,
-            new { authId, email });
+            new AddWhitelistEntryDto(authId, email));
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
@@ -62,7 +62,7 @@ public sealed class WhitelistAdminTests(AutoVerdiktWebApiFactory factory) : Whit
         using (var userClient = CreateAuthenticatedClient(userId, email, locale: "pl"))
         {
             await RegisterUserAsync(userClient, "Alice", email);
-            await userClient.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new { about = "tester" });
+            await userClient.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new SubmitWaitlistRequestDto("tester"));
         }
 
         using var admin = CreateAdminClient(CreateTestUserId());
@@ -92,7 +92,7 @@ public sealed class WhitelistAdminTests(AutoVerdiktWebApiFactory factory) : Whit
         using (var userClient = CreateAuthenticatedClient(userId, email))
         {
             await RegisterUserAsync(userClient, "Alice", email);
-            await userClient.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new { about = "tester" });
+            await userClient.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new SubmitWaitlistRequestDto("tester"));
         }
 
         using var admin = CreateAdminClient(CreateTestUserId());

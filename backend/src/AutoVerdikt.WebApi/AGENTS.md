@@ -13,6 +13,7 @@ The composition root. Wires all layers together via Dependency Injection and exp
 - **Constants**: All route paths, endpoint names, and fixed response values must be defined as `internal const` in a dedicated `*EndpointConstants` class inside the same `Endpoints/<Feature>/` folder. Never inline them as string literals.
 - **DTOs**: Request and response DTOs live in `Endpoints/<Feature>/`. Keep them minimal — never expose internal identifiers (e.g., `AuthId`) in response DTOs.
 - **Endpoint mapping**: Define a `Map*Endpoints(this IEndpointRouteBuilder app)` extension method per feature and call it from `Program.cs`.
+- **Thin endpoints**: An endpoint handler must contain only: (1) mapping the incoming DTO to a command or query, (2) a single `mediator.Send(...)` call, and (3) mapping the result to an HTTP response via `ToProblemResult()` or `Results.*`. No business logic, input method branching, data transformation, or conditional domain decisions belong in an endpoint — they belong in the Application layer.
 
 ## OpenAPI Metadata
 

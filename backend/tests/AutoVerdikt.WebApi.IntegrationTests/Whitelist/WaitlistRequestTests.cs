@@ -18,7 +18,7 @@ public sealed class WaitlistRequestTests(AutoVerdiktWebApiFactory factory) : Whi
 
         var response = await client.PostAsJsonAsync(
             WaitlistEndpointConstants.SubmitRoute,
-            new { about = "Looking for my first car" });
+            new SubmitWaitlistRequestDto("Looking for my first car"));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
@@ -31,8 +31,8 @@ public sealed class WaitlistRequestTests(AutoVerdiktWebApiFactory factory) : Whi
         using var client = CreateAuthenticatedClient(userId, email);
         await RegisterUserAsync(client, "Alice", email);
 
-        await client.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new { about = "first" });
-        var response = await client.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new { about = "second" });
+        await client.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new SubmitWaitlistRequestDto("first"));
+        var response = await client.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new SubmitWaitlistRequestDto("second"));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
@@ -47,13 +47,13 @@ public sealed class WaitlistRequestTests(AutoVerdiktWebApiFactory factory) : Whi
         using (var client1 = CreateAuthenticatedClient(userId1, email))
         {
             await RegisterUserAsync(client1, "Alice", email);
-            await client1.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new { about = "first" });
+            await client1.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new SubmitWaitlistRequestDto("first"));
         }
 
         // Second user is not registered — the handler falls back to currentUser.Email (X-Test-Email header)
         var userId2 = CreateTestUserId();
         using var client2 = CreateAuthenticatedClient(userId2, email);
-        var response = await client2.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new { about = "second" });
+        var response = await client2.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new SubmitWaitlistRequestDto("second"));
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 
@@ -61,7 +61,7 @@ public sealed class WaitlistRequestTests(AutoVerdiktWebApiFactory factory) : Whi
     public async Task SubmitWaitlistRequest_Unauthenticated_ReturnsUnauthorized()
     {
         using var client = CreateClient();
-        var response = await client.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new { about = "x" });
+        var response = await client.PostAsJsonAsync(WaitlistEndpointConstants.SubmitRoute, new SubmitWaitlistRequestDto("x"));
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
@@ -75,7 +75,7 @@ public sealed class WaitlistRequestTests(AutoVerdiktWebApiFactory factory) : Whi
 
         var response = await client.PostAsJsonAsync(
             WaitlistEndpointConstants.SubmitRoute,
-            new { about = new string('x', 10_000) });
+            new SubmitWaitlistRequestDto(new string('x', 10_000)));
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
     }

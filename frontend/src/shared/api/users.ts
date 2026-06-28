@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useMemo } from 'react';
+import { registerGetToken, resolveAuthToken } from './authTokenBridge';
 import { ApiClient } from './client';
 
 export type WhitelistStatus = 'none' | 'requested' | 'approved' | 'declined';
@@ -65,5 +66,7 @@ export class UsersApiClient extends ApiClient implements IUsersApi {
 
 export function useUsersApi(): IUsersApi {
   const { getToken } = useAuth();
-  return useMemo(() => new UsersApiClient(() => getToken()), [getToken]);
+  registerGetToken(getToken);
+
+  return useMemo(() => new UsersApiClient(resolveAuthToken), []);
 }

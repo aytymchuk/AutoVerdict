@@ -1,6 +1,5 @@
 using AutoVerdikt.Application.Abstractions;
 using AutoVerdikt.Application.Whitelist;
-using Mediator;
 
 namespace AutoVerdikt.Application.Users.GetCurrent;
 

@@ -1,5 +1,3 @@
-using FluentResults;
-using Mediator;
 using AutoVerdikt.Application.Abstractions;
 using AutoVerdikt.Application.Users.Errors;
 using AutoVerdikt.Domain.Users;

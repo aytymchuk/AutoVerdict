@@ -1,47 +1,137 @@
-import { useClerk, useUser } from '@clerk/clerk-react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { NewResearchDialog } from '../features/Research/NewResearchDialog';
+import { ResearchEmptyState } from '../features/Research/ResearchEmptyState';
+import { ResearchList } from '../features/Research/ResearchList';
+import { DashboardLayout } from '../shared/components/DashboardLayout';
+import type { ResearchListItemDto } from '../shared/api/research';
+import { useResearchApi } from '../shared/api/research';
+
+const PAGE_SIZE = 20;
 
 export function HomePage() {
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const researchApi = useResearchApi();
+  const [researches, setResearches] = useState<ResearchListItemDto[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
-  async function handleSignOut() {
-    await signOut({ redirectUrl: '/' });
+  const applyListResult = useCallback(
+    (result: { items: ResearchListItemDto[]; total: number }, pageNumber: number, append: boolean) => {
+      setTotal(result.total);
+      setPage(pageNumber);
+      setResearches((current) => (append ? [...current, ...result.items] : result.items));
+    },
+    []
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    researchApi
+      .list(1, PAGE_SIZE)
+      .then((result) => {
+        if (!cancelled) {
+          applyListResult(result, 1, false);
+          setError(null);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : 'Failed to load research.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [researchApi, applyListResult]);
+
+  const refreshResearches = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await researchApi.list(1, PAGE_SIZE);
+      applyListResult(result, 1, false);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Failed to load research.');
+    } finally {
+      setLoading(false);
+    }
+  }, [researchApi, applyListResult]);
+
+  const hasMore = researches.length < total;
+
+  async function handleLoadMore() {
+    if (!hasMore || loadingMore) {
+      return;
+    }
+
+    setLoadingMore(true);
+    setError(null);
+
+    try {
+      const result = await researchApi.list(page + 1, PAGE_SIZE);
+      applyListResult(result, page + 1, true);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Failed to load research.');
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  function handleCreated() {
+    void refreshResearches();
   }
 
   return (
-    <div className="min-h-screen bg-surface-container-lowest text-on-surface flex flex-col">
-      <header className="border-b border-outline-variant/20 bg-background/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <Link
-          to="/"
-          className="font-headline-md text-[24px] font-semibold text-on-surface tracking-tight hover:text-primary transition-colors"
-        >
-          AutoVerdikt
-        </Link>
-        <div className="flex items-center gap-4">
-          {user && (
-            <span className="text-on-surface-variant text-[14px]">
-              {user.primaryEmailAddress?.emailAddress}
-            </span>
-          )}
+    <DashboardLayout>
+      {loading ? (
+        <div className="mx-auto flex w-full max-w-[960px] flex-col gap-4 px-gutter py-10">
+          <div className="h-10 w-48 animate-pulse rounded-lg bg-surface-container" />
+          <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
+          <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
+        </div>
+      ) : error ? (
+        <div className="mx-auto flex w-full max-w-[720px] flex-col items-center gap-4 px-gutter py-16 text-center">
+          <span className="material-symbols-outlined text-[48px] text-risk-high" aria-hidden="true">
+            error
+          </span>
+          <p className="text-[16px] text-on-surface-variant">{error}</p>
           <button
-            onClick={handleSignOut}
-            className="text-on-surface-variant hover:text-primary text-[14px] transition-colors"
+            type="button"
+            onClick={() => void refreshResearches()}
+            className="rounded-full border border-outline-variant/30 bg-surface-container px-5 py-2.5 text-[14px] font-medium text-on-surface"
           >
-            Sign out
+            Try again
           </button>
         </div>
-      </header>
+      ) : total === 0 ? (
+        <ResearchEmptyState onStartResearch={() => setShowCreate(true)} />
+      ) : (
+        <ResearchList
+          items={researches}
+          total={total}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          onNewResearch={() => setShowCreate(true)}
+          onLoadMore={() => void handleLoadMore()}
+        />
+      )}
 
-      <main className="flex-1 flex flex-col items-center justify-center gap-4 px-4">
-        <span className="material-symbols-outlined text-primary text-[64px]">dashboard</span>
-        <h1 className="font-headline-md text-[32px] font-semibold text-on-surface tracking-tight">
-          Dashboard
-        </h1>
-        <p className="text-on-surface-variant text-[16px] text-center max-w-[24rem]">
-          Welcome{user?.firstName ? `, ${user.firstName}` : ''}! Your dashboard is coming soon.
-        </p>
-      </main>
-    </div>
+      <NewResearchDialog
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={handleCreated}
+      />
+    </DashboardLayout>
   );
 }

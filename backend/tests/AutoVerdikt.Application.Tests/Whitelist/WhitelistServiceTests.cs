@@ -1,6 +1,7 @@
 using AutoVerdikt.Application.FeatureFlags;
 using AutoVerdikt.Application.Whitelist;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Shouldly;
 
@@ -10,7 +11,7 @@ public sealed class WhitelistServiceTests
 {
     private readonly Mock<IWhitelistRepository> _repository = new();
     private readonly Mock<IFeatureFlagService> _featureFlags = new();
-    private readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+    private readonly HybridCache _cache = CreateCache();
 
     [Fact]
     public async Task HasAccessAsync_FlagDisabled_ReturnsTrueWithoutRepositoryCall()
@@ -60,4 +61,11 @@ public sealed class WhitelistServiceTests
 
     private WhitelistService CreateService() =>
         new(_repository.Object, _featureFlags.Object, _cache, TimeProvider.System);
+
+    private static HybridCache CreateCache()
+    {
+        var services = new ServiceCollection();
+        services.AddHybridCache();
+        return services.BuildServiceProvider().GetRequiredService<HybridCache>();
+    }
 }

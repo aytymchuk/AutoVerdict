@@ -6,7 +6,7 @@ namespace AutoVerdikt.Store.Users;
 internal sealed class UserDocument
 {
     [BsonId]
-    [BsonRepresentation(BsonType.String)]
+    [BsonGuidRepresentation(GuidRepresentation.Standard)]
     public Guid Id { get; init; }
 
     [BsonElement("authId")]

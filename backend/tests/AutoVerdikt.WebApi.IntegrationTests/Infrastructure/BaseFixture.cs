@@ -36,7 +36,7 @@ public abstract class BaseFixture(AutoVerdiktWebApiFactory factory)
         using var admin = CreateAdminClient(CreateTestUserId());
         var response = await admin.PostAsJsonAsync(
             WhitelistAdminEndpointConstants.WhitelistRoute,
-            new { authId, email });
+            new AddWhitelistEntryDto(authId, email));
         response.EnsureSuccessStatusCode();
     }
 
@@ -44,7 +44,7 @@ public abstract class BaseFixture(AutoVerdiktWebApiFactory factory)
     {
         var response = await client.PostAsJsonAsync(
             UserEndpointConstants.RegisterRoute,
-            new { name, email });
+            new UserRegistrationDto(name, email));
         response.EnsureSuccessStatusCode();
     }
 

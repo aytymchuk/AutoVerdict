@@ -9,6 +9,7 @@ using AutoVerdikt.WebApi.Authorization;
 using AutoVerdikt.WebApi.Endpoints;
 using AutoVerdikt.WebApi.Endpoints.Admin;
 using AutoVerdikt.WebApi.Endpoints.Product;
+using AutoVerdikt.WebApi.Endpoints.Research;
 using AutoVerdikt.WebApi.Endpoints.Users;
 using AutoVerdikt.WebApi.Endpoints.Whitelist;
 using AutoVerdikt.WebApi.Exceptions;
@@ -104,6 +105,7 @@ app.MapGet(HealthEndpoint.Route, () => Results.Ok(new { status = HealthEndpoint.
     .WithName(HealthEndpoint.Name);
 
 app.MapUserEndpoints();
+app.MapResearchEndpoints();
 app.MapWaitlistRequestEndpoints();
 app.MapProductEndpoints();
 app.MapWhitelistAdminEndpoints();
