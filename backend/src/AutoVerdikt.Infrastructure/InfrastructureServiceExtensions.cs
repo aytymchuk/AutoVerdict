@@ -32,6 +32,8 @@ public static class InfrastructureServiceExtensions
             .Validate(o => !string.IsNullOrWhiteSpace(o.ExtractionModel), "OpenRouter:ExtractionModel is required.")
             .ValidateOnStart();
 
+        services.AddTransient<OpenRouterHeadersHandler>();
+
         services.AddHttpClient(OpenRouterOptions.SectionName)
             .AddHttpMessageHandler<OpenRouterHeadersHandler>();
 

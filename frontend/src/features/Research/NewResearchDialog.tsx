@@ -78,7 +78,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
 
   const tabs = [
     { id: 'form' as InputTab, icon: 'assignment', label: t('research_input_form'), enabled: true },
-    { id: 'text' as InputTab, icon: 'content_paste', label: t('research_input_text'), enabled: false },
+    { id: 'text' as InputTab, icon: 'content_paste', label: t('research_input_text'), enabled: true },
     { id: 'photos' as InputTab, icon: 'photo_camera', label: t('research_input_photos'), enabled: false },
   ];
 
@@ -90,10 +90,16 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
     if (!form.price.trim() || parseOptionalDecimal(form.price) === null) return t('dialog_error_price_required');
     return null;
   }
+
+  function validateText(value: string): string | null {
+    if (!value.trim()) return t('dialog_error_text_required');
+    return null;
+  }
   const defaultCurrencyValue: Currency =
     CURRENCIES.includes(defaultCurrency as Currency) ? (defaultCurrency as Currency) : 'PLN';
   const [activeTab, setActiveTab] = useState<InputTab>('form');
   const [form, setForm] = useState<FormState>(emptyFormState);
+  const [text, setText] = useState('');
   // null means "follow profile default"; set to a specific value when the user picks one
   const [currencyOverride, setCurrencyOverride] = useState<Currency | null>(null);
   const currency = currencyOverride ?? defaultCurrencyValue;
@@ -119,6 +125,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
   function resetState() {
     setActiveTab('form');
     setForm(emptyFormState);
+    setText('');
     setCurrencyOverride(null);
     setSubmitting(false);
     setError(null);
@@ -138,7 +145,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
     setError(null);
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const validationError = validateForm(form);
@@ -154,6 +161,32 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
       await researchApi.create({
         inputMethod: 'form',
         car: buildCarPayload(form, currency),
+      });
+      resetState();
+      onCreated();
+      onClose();
+    } catch {
+      setError(t('dialog_error_create'));
+      setSubmitting(false);
+    }
+  }
+
+  async function handleTextSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const validationError = validateText(text);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await researchApi.create({
+        inputMethod: 'text',
+        text: text.trim(),
       });
       resetState();
       onCreated();
@@ -223,7 +256,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
 
           <div className="px-6 py-8 sm:px-8">
             {activeTab === 'form' && (
-              <form className="space-y-6" onSubmit={handleSubmit}>
+              <form className="space-y-6" onSubmit={handleFormSubmit}>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <label className="block space-y-2">
                     <span className="text-[13px] font-medium text-on-surface-variant">{t('dialog_field_make')}</span>
@@ -352,9 +385,47 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
             )}
 
             {activeTab === 'text' && (
-              <div className="rounded-2xl border border-outline-variant/20 bg-surface-container px-6 py-10 text-center text-on-surface-variant">
-                {t('dialog_text_soon')}
-              </div>
+              <form className="space-y-6" onSubmit={handleTextSubmit}>
+                <label className="block space-y-2">
+                  <span className="text-[13px] font-medium text-on-surface-variant">
+                    {t('dialog_text_label')}
+                  </span>
+                  <textarea
+                    value={text}
+                    onChange={(event) => {
+                      setText(event.target.value);
+                      setError(null);
+                    }}
+                    rows={10}
+                    placeholder={t('dialog_text_placeholder')}
+                    className={`${formInputClassName} resize-y`}
+                    disabled={submitting}
+                  />
+                  <p className="flex items-start gap-2 text-[13px] text-on-surface-variant">
+                    <span className="material-symbols-outlined mt-0.5 text-[16px]" aria-hidden="true">
+                      info
+                    </span>
+                    {t('dialog_text_hint')}
+                  </p>
+                </label>
+
+                {error && (
+                  <p className="rounded-lg border border-risk-high/30 bg-risk-high/10 px-4 py-3 text-[14px] text-risk-high">
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-[15px] font-semibold text-on-primary transition-colors hover:bg-primary-fixed-dim disabled:opacity-50 sm:w-auto"
+                >
+                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                    analytics
+                  </span>
+                  {submitting ? t('dialog_submitting') : t('dialog_submit')}
+                </button>
+              </form>
             )}
 
             {activeTab === 'photos' && (
