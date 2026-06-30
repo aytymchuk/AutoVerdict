@@ -12,6 +12,18 @@ function resolveLanguageTag(tag: string): Language | null {
   return null;
 }
 
+/** Resolve language from browser/OS preferences only, ignoring localStorage. */
+export function resolveBrowserLanguage(): Language {
+  if (typeof window === 'undefined') return 'en';
+
+  for (const tag of navigator.languages ?? []) {
+    const resolved = resolveLanguageTag(tag);
+    if (resolved) return resolved;
+  }
+
+  return resolveLanguageTag(navigator.language) ?? 'en';
+}
+
 /** Prefer saved choice, then browser/OS language list, then primary browser locale. */
 export function getInitialLanguage(): Language {
   if (typeof window === 'undefined') return 'en';
@@ -25,10 +37,5 @@ export function getInitialLanguage(): Language {
     // localStorage unavailable (private mode, etc.)
   }
 
-  for (const tag of navigator.languages ?? []) {
-    const resolved = resolveLanguageTag(tag);
-    if (resolved) return resolved;
-  }
-
-  return resolveLanguageTag(navigator.language) ?? 'en';
+  return resolveBrowserLanguage();
 }

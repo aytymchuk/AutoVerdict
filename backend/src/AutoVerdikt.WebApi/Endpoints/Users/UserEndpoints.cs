@@ -1,5 +1,6 @@
 using AutoVerdikt.Application.Users.GetCurrent;
 using AutoVerdikt.Application.Users.Register;
+using AutoVerdikt.Application.Users.UpdateProfile;
 using AutoVerdikt.WebApi.Extensions;
 using Mediator;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
@@ -20,7 +21,10 @@ internal static class UserEndpoints
                 var u = result.Value;
                 return Results.Created(
                     UserEndpointConstants.GetCurrentRoute,
-                    new UserAccountDto(u.Id, u.Name, u.Email, u.RegisteredAt, IsWhitelisted: true, WhitelistStatus: "none"));
+                    new UserAccountDto(u.Id, u.Name, u.Email, u.RegisteredAt,
+                        IsWhitelisted: false,
+                        WhitelistStatus: u.WhitelistStatus.ToString().ToLowerInvariant(),
+                        Language: null, DefaultCurrency: null));
             })
             .WithName(UserEndpointConstants.RegisterName)
             .WithSummary(UserEndpointConstants.RegisterSummary)
@@ -45,7 +49,9 @@ internal static class UserEndpoints
                     user.Email,
                     user.RegisteredAt,
                     user.IsWhitelisted,
-                    user.WhitelistStatus.ToString().ToLowerInvariant()));
+                    user.WhitelistStatus.ToString().ToLowerInvariant(),
+                    user.Language,
+                    user.DefaultCurrency));
             })
             .WithName(UserEndpointConstants.GetCurrentName)
             .WithSummary(UserEndpointConstants.GetCurrentSummary)
@@ -53,6 +59,33 @@ internal static class UserEndpoints
             .Produces<UserAccountDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status401Unauthorized);
+
+        app.MapPatch(UserEndpointConstants.UpdateProfileRoute,
+            async (UpdateUserProfileDto dto, IMediator mediator, CancellationToken ct) =>
+            {
+                var result = await mediator.Send(
+                    new UpdateUserProfileCommand(
+                        string.IsNullOrWhiteSpace(dto.Language) ? null : dto.Language,
+                        string.IsNullOrWhiteSpace(dto.DefaultCurrency) ? null : dto.DefaultCurrency), ct);
+                if (result.IsFailed)
+                    return result.ToProblemResult();
+
+                var u = result.Value;
+                return Results.Ok(new UserAccountDto(
+                    u.Id, u.Name, u.Email, u.RegisteredAt,
+                    u.IsWhitelisted,
+                    u.WhitelistStatus.ToString().ToLowerInvariant(),
+                    u.Language,
+                    u.DefaultCurrency));
+            })
+            .WithName(UserEndpointConstants.UpdateProfileName)
+            .WithSummary(UserEndpointConstants.UpdateProfileSummary)
+            .WithDescription(UserEndpointConstants.UpdateProfileDescription)
+            .Produces<UserAccountDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesValidationProblem()
+            .AddFluentValidationAutoValidation();
 
         return app;
     }

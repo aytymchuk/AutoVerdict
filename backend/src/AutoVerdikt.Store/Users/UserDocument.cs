@@ -28,4 +28,12 @@ internal sealed class UserDocument
     [BsonElement("waitlistStatus")]
     [BsonIgnoreIfNull]
     public string? LegacyWaitlistStatus { get; init; }
+
+    [BsonElement("language")]
+    [BsonIgnoreIfNull]
+    public string? Language { get; init; }
+
+    [BsonElement("defaultCurrency")]
+    [BsonIgnoreIfNull]
+    public string? DefaultCurrency { get; init; }
 }

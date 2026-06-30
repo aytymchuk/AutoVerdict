@@ -13,6 +13,8 @@ export interface UserStatusContextValue {
   status: UserStatus;
   email: string | null;
   whitelistStatus: WhitelistStatus;
+  language: string | null;
+  defaultCurrency: string | null;
   refetch: () => Promise<UserStatus>;
 }
 

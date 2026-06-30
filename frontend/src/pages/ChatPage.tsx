@@ -1,13 +1,13 @@
 import { AIChat } from '../features/AIChat/AIChat';
 import { SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
 import { useTranslation } from '../shared/lib/i18n';
-import { DashboardLayout } from '../shared/components/DashboardLayout';
+import { AppLayout } from '../shared/components/AppLayout';
 
 export function ChatPage() {
   const { t } = useTranslation();
 
   return (
-    <DashboardLayout>
+    <AppLayout>
       <div className="mx-auto max-w-4xl space-y-6 p-gutter">
         <div className="text-center">
           <h2 className="font-headline-md text-[24px] font-semibold text-on-surface">{t('title')}</h2>
@@ -29,6 +29,6 @@ export function ChatPage() {
           </div>
         </SignedOut>
       </div>
-    </DashboardLayout>
+    </AppLayout>
   );
 }

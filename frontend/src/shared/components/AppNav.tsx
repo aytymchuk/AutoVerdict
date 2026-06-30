@@ -1,6 +1,7 @@
 import { useClerk, useUser } from '@clerk/clerk-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useTranslation } from '../lib/i18n';
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
   [
@@ -26,6 +27,7 @@ function getUserInitial(user: ReturnType<typeof useUser>['user']) {
 export function AppNav() {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -62,10 +64,10 @@ export function AppNav() {
 
           <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
             <NavLink to="/home" className={navLinkClassName} end>
-              My Research
+              {t('nav_my_research')}
             </NavLink>
             <NavLink to="/credits" className={navLinkClassName}>
-              Credits
+              {t('nav_credits')}
             </NavLink>
           </nav>
         </div>
@@ -74,7 +76,7 @@ export function AppNav() {
           <div className="flex items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container px-3 py-1.5">
             <span className="h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
             <span className="font-mono-sm text-[14px] text-on-surface">50</span>
-            <span className="text-on-surface-variant text-[12px]">Add Credit</span>
+            <span className="text-on-surface-variant text-[12px]">{t('nav_add_credit')}</span>
           </div>
 
           <div className="relative" ref={menuRef}>
@@ -83,7 +85,7 @@ export function AppNav() {
               onClick={() => setMenuOpen((open) => !open)}
               aria-expanded={menuOpen}
               aria-haspopup="menu"
-              aria-label="Open account menu"
+              aria-label={t('nav_open_account_menu')}
               className="flex items-center gap-1 rounded-full p-1 text-on-surface-variant transition-colors hover:text-on-surface focus:outline-none focus:ring-2 focus:ring-risk-medium"
             >
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high text-[14px] font-medium text-on-surface">
@@ -99,8 +101,8 @@ export function AppNav() {
                 role="menu"
                 className="absolute right-0 top-full mt-2 min-w-[12rem] rounded-xl border border-outline-variant/20 bg-surface-container-high py-2 shadow-lg"
               >
-                <button
-                  type="button"
+                <Link
+                  to="/profile"
                   role="menuitem"
                   onClick={() => setMenuOpen(false)}
                   className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-[14px] text-on-surface transition-colors hover:bg-surface-variant/50"
@@ -108,8 +110,8 @@ export function AppNav() {
                   <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                     person
                   </span>
-                  Profile
-                </button>
+                  {t('nav_profile')}
+                </Link>
                 <button
                   type="button"
                   role="menuitem"
@@ -119,7 +121,7 @@ export function AppNav() {
                   <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                     person_add
                   </span>
-                  Invite a friend
+                  {t('nav_invite_friend')}
                 </button>
                 <button
                   type="button"
@@ -130,7 +132,7 @@ export function AppNav() {
                   <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                     help
                   </span>
-                  Help
+                  {t('nav_help')}
                 </button>
                 <div className="my-2 border-t border-outline-variant/20" />
                 <button
@@ -142,7 +144,7 @@ export function AppNav() {
                   <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                     logout
                   </span>
-                  Sign out
+                  {t('nav_sign_out')}
                 </button>
               </div>
             )}

@@ -6,6 +6,7 @@ import { AuthPage } from '../pages/AuthPage';
 import { AuthCallbackPage } from '../pages/AuthCallbackPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { HomePage } from '../pages/HomePage';
+import { ProfilePage } from '../pages/ProfilePage';
 import { WaitingPage } from '../pages/WaitingPage';
 import { I18nProvider } from '../shared/lib/i18n/index';
 import { UserStatusProvider } from '../shared/context/userStatusProvider';
@@ -50,6 +51,14 @@ export function App() {
                 element={
                   <ProtectedRoute>
                     <ChatPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
                   </ProtectedRoute>
                 }
               />

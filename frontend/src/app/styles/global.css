@@ -108,6 +108,14 @@
   --font-mono-sm: 'JetBrains Mono', monospace;
 }
 
+@utility heading-page {
+  font-family: var(--font-headline-md);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--color-on-surface);
+}
+
 body {
   font-family: var(--font-body-md);
 }

@@ -25,6 +25,8 @@ public sealed class GetCurrentUserQueryHandler(
             user.Email,
             user.RegisteredAt,
             hasAccess,
-            user.WhitelistStatus);
+            user.WhitelistStatus,
+            user.Language,
+            user.DefaultCurrency);
     }
 }

@@ -15,4 +15,10 @@ internal static class UserEndpointConstants
     internal const string GetCurrentDescription =
         "Returns the account of the currently authenticated Clerk user, " +
         "or 404 if no account has been registered yet.";
+
+    internal const string UpdateProfileRoute = "/users/me/profile";
+    internal const string UpdateProfileName = "UpdateUserProfile";
+    internal const string UpdateProfileSummary = "Update the current user's profile settings";
+    internal const string UpdateProfileDescription =
+        "Updates the language and default currency preferences for the currently authenticated user.";
 }

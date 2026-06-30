@@ -1,14 +1,18 @@
+import { useTranslation } from '../../shared/lib/i18n';
+
 interface ResearchEmptyStateProps {
   onStartResearch: () => void;
 }
 
-const inputMethods = [
-  { icon: 'assignment', label: 'Enter data' },
-  { icon: 'keyboard', label: 'Paste text' },
-  { icon: 'photo_camera', label: 'Photos' },
-] as const;
-
 export function ResearchEmptyState({ onStartResearch }: ResearchEmptyStateProps) {
+  const { t } = useTranslation();
+
+  const inputMethods = [
+    { icon: 'assignment', label: t('research_input_form') },
+    { icon: 'keyboard', label: t('research_input_text') },
+    { icon: 'photo_camera', label: t('research_input_photos') },
+  ] as const;
+
   return (
     <div className="mx-auto flex w-full max-w-[720px] flex-col items-center px-gutter py-16 text-center">
       <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
@@ -18,10 +22,10 @@ export function ResearchEmptyState({ onStartResearch }: ResearchEmptyStateProps)
       </div>
 
       <h1 className="font-headline-md text-[32px] font-semibold tracking-tight text-on-surface">
-        You don&apos;t have any research yet
+        {t('research_empty_heading')}
       </h1>
       <p className="mt-3 max-w-[28rem] text-[16px] text-on-surface-variant">
-        Check your first listing in 3 ways
+        {t('research_empty_subtitle')}
       </p>
 
       <div className="mt-10 grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
@@ -49,14 +53,14 @@ export function ResearchEmptyState({ onStartResearch }: ResearchEmptyStateProps)
         <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
           add
         </span>
-        Start your first research
+        {t('research_empty_start')}
       </button>
 
       <p className="mt-8 flex items-center gap-2 text-[14px] text-on-surface-variant">
         <span className="text-primary" aria-hidden="true">
           ✦
         </span>
-        You received 50 starter credits as a beta participant
+        {t('research_empty_credits')}
       </p>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useTranslation } from '../../shared/lib/i18n';
 import type { ResearchListItemDto } from '../../shared/api/research';
 import { ResearchCard } from './ResearchCard';
 
@@ -18,16 +19,26 @@ export function ResearchList({
   onNewResearch,
   onLoadMore,
 }: ResearchListProps) {
+  const { t, language } = useTranslation();
+
+  const pluralLocale = language === 'pl' ? 'pl-PL' : language === 'uk' ? 'uk-UA' : 'en-US';
+  const pluralForm = new Intl.PluralRules(pluralLocale).select(total);
+  const pluralKey =
+    pluralForm === 'one'
+      ? 'research_list_count_one'
+      : pluralForm === 'few'
+        ? 'research_list_count_few'
+        : 'research_list_count_many';
+  const countLabel = t(pluralKey).replace('{count}', String(total));
+
   return (
     <div className="mx-auto w-full max-w-[960px] px-gutter py-10">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-headline-md text-[32px] font-semibold tracking-tight text-on-surface">
-            Recent Research
+          <h1 className="heading-page">
+            {t('research_list_heading')}
           </h1>
-          <p className="mt-1 text-[14px] text-on-surface-variant">
-            {total} {total === 1 ? 'analysis' : 'analyses'}
-          </p>
+          <p className="mt-1 text-[14px] text-on-surface-variant">{countLabel}</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -39,7 +50,7 @@ export function ResearchList({
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
               add
             </span>
-            New Analysis
+            {t('research_new_analysis')}
           </button>
           <button
             type="button"
@@ -78,7 +89,7 @@ export function ResearchList({
             disabled={loadingMore}
             className="rounded-full border border-outline-variant/30 bg-surface-container px-6 py-2.5 text-[14px] font-medium text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50"
           >
-            {loadingMore ? 'Loading...' : 'Load More History'}
+            {loadingMore ? t('research_loading_more') : t('research_load_more')}
           </button>
         </div>
       )}
