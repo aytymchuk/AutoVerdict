@@ -14,8 +14,8 @@ public abstract class ResearchTestBase(AutoVerdiktWebApiFactory factory) : BaseF
         new(make, model, year, mileageKm, price, null, null, null, null, null, null, null);
 
     protected static CreateResearchDto CreateFormResearch(CreateCarDataDto car) =>
-        new("form", car);
+        new("form", car, null);
 
-    protected static CreateResearchDto CreateTextResearch() =>
-        new("text", null);
+    protected static CreateResearchDto CreateTextResearch(string? text = null) =>
+        new("text", null, text ?? "Volkswagen Golf 2018, 87 200 km, 42 900 PLN. Well maintained.");
 }

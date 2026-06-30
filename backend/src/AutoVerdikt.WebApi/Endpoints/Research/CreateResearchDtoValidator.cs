@@ -18,5 +18,12 @@ public sealed class CreateResearchDtoValidator : AbstractValidator<CreateResearc
                 .NotNull()
                 .WithMessage("Car data is required for the form input method.");
         });
+
+        When(x => x.InputMethod == "text", () =>
+        {
+            RuleFor(x => x.Text)
+                .NotEmpty()
+                .WithMessage("Text is required for the text input method.");
+        });
     }
 }

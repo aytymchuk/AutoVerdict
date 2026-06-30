@@ -1,5 +1,7 @@
+using AutoVerdikt.Application.AI.Extraction;
 using AutoVerdikt.Application.Email;
 using AutoVerdikt.Application.FeatureFlags;
+using AutoVerdikt.Infrastructure.AI.Extraction;
 using AutoVerdikt.Store.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -42,6 +44,11 @@ public class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, IAsyncLi
                 [$"{MongoDbOptions.SectionName}:ConnectionString"] = _mongoContainer.GetConnectionString(),
                 [$"{MongoDbOptions.SectionName}:DatabaseName"] = $"autoverdikt_it_{Guid.NewGuid():N}",
                 [$"{FeatureFlagOptions.SectionName}:WhitelistEnabled"] = WhitelistEnabled.ToString().ToLowerInvariant(),
+                [$"{OpenRouterOptions.SectionName}:ApiKey"] = "test-key",
+                [$"{OpenRouterOptions.SectionName}:BaseUrl"] = "https://openrouter.ai/api/v1",
+                [$"{OpenRouterOptions.SectionName}:ExtractionModel"] = "google/gemini-2.5-flash",
+                [$"{OpenRouterOptions.SectionName}:SiteUrl"] = "https://autoverdikt.com",
+                [$"{OpenRouterOptions.SectionName}:SiteName"] = "AutoVerdikt",
             });
         });
 
@@ -49,6 +56,9 @@ public class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, IAsyncLi
         {
             services.RemoveAll<ISendGridService>();
             services.AddSingleton<ISendGridService>(SendGridSpy);
+
+            services.RemoveAll<IExtractionService>();
+            services.AddSingleton<IExtractionService, FakeExtractionService>();
 
             services.AddAuthentication(options =>
             {

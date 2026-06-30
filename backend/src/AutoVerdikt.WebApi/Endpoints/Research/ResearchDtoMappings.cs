@@ -38,6 +38,7 @@ internal static class ResearchDtoMappings
             record.Car?.ToCarDataDto(),
             record.Description,
             ToDescriptionSourceString(record.DescriptionSource),
+            record.InitialPrompt,
             record.CreditsSpent,
             record.CreatedAt,
             record.UpdatedAt);

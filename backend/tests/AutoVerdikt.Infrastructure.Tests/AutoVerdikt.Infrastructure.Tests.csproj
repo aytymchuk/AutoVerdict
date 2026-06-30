@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Moq" />
     <ProjectReference Include="..\..\src\AutoVerdikt.Infrastructure\AutoVerdikt.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -9,6 +9,7 @@ public sealed record ResearchDetailDto(
     CarDataDto? Car,
     string? Description,
     string? DescriptionSource,
+    string? InitialPrompt,
     int CreditsSpent,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);

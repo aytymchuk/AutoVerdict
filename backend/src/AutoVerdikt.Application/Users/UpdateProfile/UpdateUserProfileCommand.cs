@@ -1,5 +1,3 @@
-using FluentResults;
-using Mediator;
 using AutoVerdikt.Application.Users.GetCurrent;
 
 namespace AutoVerdikt.Application.Users.UpdateProfile;

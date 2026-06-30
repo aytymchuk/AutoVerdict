@@ -18,7 +18,7 @@ internal static class ResearchEndpoints
             async (CreateResearchDto dto, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(
-                    new CreateResearchCommand(dto.InputMethod.ToInputMethod(), dto.Car?.ToDomain()),
+                    new CreateResearchCommand(dto.InputMethod.ToInputMethod(), dto.Car?.ToDomain(), dto.Text),
                     ct);
 
                 if (result.IsFailed)

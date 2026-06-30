@@ -39,6 +39,10 @@ internal sealed class ResearchDocument
     [BsonIgnoreIfNull]
     public string? DescriptionSource { get; init; }
 
+    [BsonElement("initialPrompt")]
+    [BsonIgnoreIfNull]
+    public string? InitialPrompt { get; init; }
+
     [BsonElement("creditsSpent")]
     public int CreditsSpent { get; init; }
 

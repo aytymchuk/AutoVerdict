@@ -44,6 +44,7 @@ export interface ResearchDetailDto {
   car: CarDataDto | null;
   description: string | null;
   descriptionSource: string | null;
+  initialPrompt: string | null;
   creditsSpent: number;
   createdAt: string;
   updatedAt: string;
@@ -67,6 +68,7 @@ export interface CreateCarDataDto {
 export interface CreateResearchDto {
   inputMethod: InputMethod;
   car?: CreateCarDataDto | null;
+  text?: string | null;
 }
 
 export interface PaginatedResult<T> {
