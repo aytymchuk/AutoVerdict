@@ -15,7 +15,20 @@ public sealed class ExtractionServiceTests
     [Fact]
     public async Task ExtractAsync_ReturnsDeserializedResult_WhenChatClientSucceeds()
     {
-        var json = """{"make":"Volkswagen","model":"Golf","year":2018,"mileageKm":87200,"price":42900,"currency":"PLN"}""";
+        var json = """
+            {
+              "confidence": 0.92,
+              "reasoning": "Clear used car listing with make, model, year, mileage, and price.",
+              "data": {
+                "make": "Volkswagen",
+                "model": "Golf",
+                "year": 2018,
+                "mileageKm": 87200,
+                "price": 42900,
+                "currency": "PLN"
+              }
+            }
+            """;
         var response = new ChatResponse(new ChatMessage(ChatRole.Assistant, json))
         {
             ModelId = "google/gemini-2.5-flash",
@@ -34,6 +47,9 @@ public sealed class ExtractionServiceTests
         var result = await service.ExtractAsync<CarListingFacts>("VW Golf 2018, 87k km, 42900 PLN");
 
         result.IsSuccess.ShouldBeTrue();
+        result.IsIntentMatch.ShouldBeTrue();
+        result.Confidence.ShouldBe(0.92);
+        result.Reasoning.ShouldBe("Clear used car listing with make, model, year, mileage, and price.");
         result.Value!.Make.ShouldBe("Volkswagen");
         result.Value.Model.ShouldBe("Golf");
         result.Value.Year.ShouldBe(2018);
@@ -74,7 +90,7 @@ public sealed class ExtractionServiceTests
     public async Task ExtractAsync_SetsTemperatureToZero()
     {
         ChatOptions? capturedOptions = null;
-        var response = new ChatResponse(new ChatMessage(ChatRole.Assistant, """{"make":"BMW"}"""));
+        var response = new ChatResponse(new ChatMessage(ChatRole.Assistant, """{"confidence":0.9,"data":{"make":"BMW"}}"""));
 
         _chatClient
           .Setup(c => c.GetResponseAsync(

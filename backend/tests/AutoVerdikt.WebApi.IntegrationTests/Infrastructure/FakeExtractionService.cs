@@ -24,6 +24,8 @@ public sealed class FakeExtractionService : IExtractionService
             return Task.FromResult(new ExtractionResult<T>(
               Value: (T)(object)facts,
               IsSuccess: true,
+              Confidence: 0.95,
+              Reasoning: null,
               RawJson: null,
               ModelId: "fake-model",
               InputTokens: 10,
@@ -33,6 +35,8 @@ public sealed class FakeExtractionService : IExtractionService
         return Task.FromResult(new ExtractionResult<T>(
           Value: null,
           IsSuccess: false,
+          Confidence: 0,
+          Reasoning: null,
           RawJson: null,
           ModelId: "fake-model",
           InputTokens: 0,

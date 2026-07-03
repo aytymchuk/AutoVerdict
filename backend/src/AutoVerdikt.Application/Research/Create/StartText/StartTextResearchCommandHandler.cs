@@ -22,10 +22,22 @@ public sealed class StartTextResearchCommandHandler(
             return Result.Fail<ResearchRecord>(new ExtractionFailedError(
                 extraction.ErrorMessage ?? "Failed to extract car listing data from the provided text."));
 
-        var facts = extraction.Value!;
+        if (!extraction.IsIntentMatch)
+            return Result.Fail<ResearchRecord>(new ExtractionIntentMismatchError(
+                extraction.Reasoning ?? "The provided text does not appear to describe a car listing."));
+
+        var facts = extraction.Value;
+        if (facts is null)
+            return Result.Fail<ResearchRecord>(new ExtractionFailedError("No car listing data could be extracted."));
+
+        var carData = facts.ToCarData();
+        if (!carData.HasMinimumRequiredFields())
+            return Result.Fail<ResearchRecord>(new ExtractionFailedError(
+                "Could not extract enough car details (make, model, year, mileage, and price) from the provided text."));
+
         return await CreateAndPersistAsync(
             InputMethod.Text,
-            facts.ToCarData(),
+            carData,
             facts.Description,
             DescriptionSource.AiGeneratedFromText,
             command.Text,

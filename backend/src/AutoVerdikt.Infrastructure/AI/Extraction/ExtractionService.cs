@@ -8,6 +8,13 @@ namespace AutoVerdikt.Infrastructure.AI.Extraction;
 public sealed class ExtractionService(IChatClient chatClient, ILogger<ExtractionService> logger)
     : IExtractionService
 {
+    private const string ConfidenceInstruction = """
+        Also assess how well the input matches the expected domain described above.
+        Set confidence to a value between 0.0 and 1.0 (1.0 = clearly on-topic and extraction is accurate).
+        Set confidence below 0.75 when the input is unrelated to the expected domain or too ambiguous to extract reliably.
+        Provide brief reasoning explaining the confidence score.
+        """;
+
     public async Task<ExtractionResult<T>> ExtractAsync<T>(
         string input,
         CancellationToken ct = default)
@@ -21,13 +28,13 @@ public sealed class ExtractionService(IChatClient chatClient, ILogger<Extraction
         {
             var messages = new List<ChatMessage>
             {
-                new(ChatRole.System, schemaAttr.SystemPrompt),
+                new(ChatRole.System, $"{schemaAttr.SystemPrompt}\n\n{ConfidenceInstruction}"),
                 new(ChatRole.User, input)
             };
 
             var options = new ChatOptions { Temperature = 0f };
 
-            var response = await chatClient.GetResponseAsync<T>(
+            var response = await chatClient.GetResponseAsync<ExtractionEnvelope<T>>(
                 messages,
                 options,
                 useJsonSchemaResponseFormat: true,
@@ -36,10 +43,13 @@ public sealed class ExtractionService(IChatClient chatClient, ILogger<Extraction
             var inputTokens = (int?)response.Usage?.InputTokenCount ?? 0;
             var outputTokens = (int?)response.Usage?.OutputTokenCount ?? 0;
             var rawJson = response.Text;
+            var envelope = response.Result;
 
             return new ExtractionResult<T>(
-                Value: response.Result,
-                IsSuccess: response.Result is not null,
+                Value: envelope?.Data,
+                IsSuccess: envelope is not null,
+                Confidence: envelope?.Confidence ?? 0,
+                Reasoning: envelope?.Reasoning,
                 RawJson: rawJson,
                 ModelId: response.ModelId ?? "unknown",
                 InputTokens: inputTokens,
@@ -51,6 +61,8 @@ public sealed class ExtractionService(IChatClient chatClient, ILogger<Extraction
             return new ExtractionResult<T>(
                 Value: null,
                 IsSuccess: false,
+                Confidence: 0,
+                Reasoning: null,
                 RawJson: null,
                 ModelId: "unknown",
                 InputTokens: 0,

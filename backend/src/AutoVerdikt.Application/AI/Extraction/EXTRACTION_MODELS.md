@@ -37,6 +37,16 @@ The `[ExtractionSchema]` system prompt should:
 3. Instruct the model to return `null` for missing fields — not to guess or hallucinate.
 4. State any normalisation rules (unit conversions, date formats, enum values).
 
+## Confidence and intent matching
+
+`IExtractionService` automatically wraps every extraction type in an envelope that includes `confidence` (0.0–1.0) and `reasoning`. Authors of extraction models do **not** add these fields to their schema classes — they are handled in Infrastructure.
+
+- **`IsSuccess`** — the LLM call completed and the envelope parsed (no exception).
+- **`IsIntentMatch`** — `confidence >= 0.75`; the input appears on-topic for the schema's domain.
+- **`Reasoning`** — brief model explanation of the confidence score; surfaced to users on intent mismatch.
+
+Write `[ExtractionSchema]` system prompts that make off-topic input easy to identify (e.g. clearly state the expected domain) so the model assigns low confidence to unrelated text.
+
 ## Usage pattern
 
 ```csharp
@@ -45,6 +55,12 @@ var result = await extractionService.ExtractAsync<MyFacts>(rawInput, ct);
 if (!result.IsSuccess)
 {
   // handle gracefully — do not throw
+  return;
+}
+
+if (!result.IsIntentMatch)
+{
+  // input is unrelated to the expected domain — use result.Reasoning for the user message
   return;
 }
 

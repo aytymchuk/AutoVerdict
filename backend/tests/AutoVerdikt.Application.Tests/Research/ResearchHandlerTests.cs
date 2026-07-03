@@ -75,6 +75,8 @@ public class ResearchHandlerTests
                     Description = "Well-maintained Golf."
                 },
                 IsSuccess: true,
+                Confidence: 0.95,
+                Reasoning: null,
                 RawJson: null,
                 ModelId: "test-model",
                 InputTokens: 10,
@@ -112,6 +114,8 @@ public class ResearchHandlerTests
             .ReturnsAsync(new ExtractionResult<CarListingFacts>(
                 null,
                 IsSuccess: false,
+                Confidence: 0,
+                Reasoning: null,
                 RawJson: null,
                 ModelId: "test-model",
                 InputTokens: 0,
@@ -124,6 +128,67 @@ public class ResearchHandlerTests
             TimeProvider.System,
             _extractionService.Object).Handle(
             new StartTextResearchCommand("some text"),
+            CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        result.Errors[0].ShouldBeOfType<ExtractionFailedError>();
+        _repository.Verify(
+            r => r.CreateAsync(It.IsAny<ResearchRecord>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task StartText_ReturnsExtractionIntentMismatchError_WhenConfidenceIsLow()
+    {
+        _extractionService
+            .Setup(e => e.ExtractAsync<CarListingFacts>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ExtractionResult<CarListingFacts>(
+                new CarListingFacts(),
+                IsSuccess: true,
+                Confidence: 0.2,
+                Reasoning: "Input is a recipe, not a car listing.",
+                RawJson: null,
+                ModelId: "test-model",
+                InputTokens: 10,
+                OutputTokens: 5));
+
+        var result = await new StartTextResearchCommandHandler(
+            _repository.Object,
+            _currentUser.Object,
+            TimeProvider.System,
+            _extractionService.Object).Handle(
+            new StartTextResearchCommand("chocolate cake recipe"),
+            CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        result.Errors[0].ShouldBeOfType<ExtractionIntentMismatchError>();
+        result.Errors[0].Message.ShouldBe("Input is a recipe, not a car listing.");
+        _repository.Verify(
+            r => r.CreateAsync(It.IsAny<ResearchRecord>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task StartText_ReturnsExtractionFailedError_WhenExtractedDataIsIncomplete()
+    {
+        _extractionService
+            .Setup(e => e.ExtractAsync<CarListingFacts>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ExtractionResult<CarListingFacts>(
+                new CarListingFacts { Description = "Some vague text mentioning a car for sale." },
+                IsSuccess: true,
+                Confidence: 0.85,
+                Reasoning: null,
+                RawJson: null,
+                ModelId: "test-model",
+                InputTokens: 10,
+                OutputTokens: 5));
+
+        var result = await new StartTextResearchCommandHandler(
+            _repository.Object,
+            _currentUser.Object,
+            TimeProvider.System,
+            _extractionService.Object).Handle(
+            new StartTextResearchCommand("car for sale, contact me for details"),
             CancellationToken.None);
 
         result.IsFailed.ShouldBeTrue();
