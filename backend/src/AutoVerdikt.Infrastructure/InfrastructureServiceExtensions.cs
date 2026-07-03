@@ -29,6 +29,7 @@ public static class InfrastructureServiceExtensions
 
         services.AddOptions<OpenRouterOptions>()
             .Bind(configuration.GetSection(OpenRouterOptions.SectionName))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.ApiKey), "OpenRouter:ApiKey is required.")
             .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl), "OpenRouter:BaseUrl is required.")
             .Validate(o => !string.IsNullOrWhiteSpace(o.ExtractionModel), "OpenRouter:ExtractionModel is required.")
             .ValidateOnStart();

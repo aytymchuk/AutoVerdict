@@ -10,10 +10,10 @@ namespace AutoVerdikt.Infrastructure.AI.Extraction;
 public sealed class ExtractionService(IChatClient chatClient, ILogger<ExtractionService> logger)
     : IExtractionService
 {
-    private const string ConfidenceInstruction = """
+    private static readonly string ConfidenceInstruction = $"""
         Also assess how well the input matches the expected domain described above.
         Set confidence to a value between 0.0 and 1.0 (1.0 = clearly on-topic and extraction is accurate).
-        Set confidence below 0.75 when the input is unrelated to the expected domain or too ambiguous to extract reliably.
+        Set confidence below {ExtractionOutcome<object>.MinConfidenceThreshold:0.00} when the input is unrelated to the expected domain or too ambiguous to extract reliably.
         Provide brief reasoning explaining the confidence score.
         """;
 

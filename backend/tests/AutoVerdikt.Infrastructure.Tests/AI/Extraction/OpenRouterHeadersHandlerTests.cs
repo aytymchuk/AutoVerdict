@@ -4,7 +4,7 @@ using Shouldly;
 
 namespace AutoVerdikt.Infrastructure.Tests.AI.Extraction;
 
-public sealed class OpenRouterHttpClientRegistrationTests
+public sealed class OpenRouterHeadersHandlerTests
 {
     [Fact]
     public async Task OpenRouterHeadersHandler_adds_referer_and_title_headers()

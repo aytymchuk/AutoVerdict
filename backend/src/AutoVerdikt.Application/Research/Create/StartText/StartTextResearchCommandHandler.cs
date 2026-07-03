@@ -18,6 +18,10 @@ public sealed class StartTextResearchCommandHandler(
       IRequestHandler<StartTextResearchCommand, Result<ResearchRecord>>
 {
     private const string ExtractionFailedMessage = "Failed to extract car listing data from the provided text.";
+    private const string IntentMismatchFallbackMessage = "The provided text does not appear to describe a car listing.";
+    private const string NoDataExtractedMessage = "No car listing data could be extracted.";
+    private const string IncompleteFieldsMessage =
+        "Could not extract enough car details (make, model, year, mileage, and price) from the provided text.";
 
     public async ValueTask<Result<ResearchRecord>> Handle(
         StartTextResearchCommand command,
@@ -34,16 +38,15 @@ public sealed class StartTextResearchCommandHandler(
         var outcome = extraction.Value;
         if (!outcome.IsIntentMatch)
             return Result.Fail<ResearchRecord>(new ExtractionIntentMismatchError(
-                outcome.Reasoning ?? "The provided text does not appear to describe a car listing."));
+                outcome.Reasoning ?? IntentMismatchFallbackMessage));
 
         var facts = outcome.Value;
         if (facts is null)
-            return Result.Fail<ResearchRecord>(new ExtractionFailedError("No car listing data could be extracted."));
+            return Result.Fail<ResearchRecord>(new ExtractionFailedError(NoDataExtractedMessage));
 
         var carData = facts.ToCarData();
         if (!carData.HasMinimumRequiredFields())
-            return Result.Fail<ResearchRecord>(new ExtractionFailedError(
-                "Could not extract enough car details (make, model, year, mileage, and price) from the provided text."));
+            return Result.Fail<ResearchRecord>(new ExtractionFailedError(IncompleteFieldsMessage));
 
         return await CreateAndPersistAsync(
             InputMethod.Text,
