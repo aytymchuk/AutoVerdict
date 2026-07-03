@@ -11,6 +11,7 @@ public record ResearchRecord
     public CarData? Car { get; init; }
     public string? Description { get; init; }
     public DescriptionSource? DescriptionSource { get; init; }
+    public string? InitialPrompt { get; init; }
     public int CreditsSpent { get; init; }
     public bool IsNameManual { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
@@ -22,6 +23,7 @@ public record ResearchRecord
         CarData? car,
         string? description,
         DescriptionSource? descriptionSource,
+        string? initialPrompt,
         TimeProvider timeProvider)
     {
         var now = timeProvider.GetUtcNow();
@@ -43,6 +45,7 @@ public record ResearchRecord
             Car = car,
             Description = description,
             DescriptionSource = descriptionSource,
+            InitialPrompt = initialPrompt,
             CreditsSpent = 0,
             IsNameManual = false,
             CreatedAt = now,

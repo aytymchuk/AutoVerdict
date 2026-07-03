@@ -11,7 +11,7 @@ public sealed class StartResearchCommandFactory : IStartResearchCommandFactory
         command.InputMethod switch
         {
             InputMethod.Form => Result.Ok<IRequest<Result<ResearchRecord>>>(new StartFormResearchCommand(command.Car!)),
-            InputMethod.Text => Result.Ok<IRequest<Result<ResearchRecord>>>(new StartTextResearchCommand()),
+            InputMethod.Text => Result.Ok<IRequest<Result<ResearchRecord>>>(new StartTextResearchCommand(command.Text!)),
             _ => Result.Fail<IRequest<Result<ResearchRecord>>>(new InputMethodNotSupportedError())
         };
 }

@@ -18,5 +18,6 @@ public sealed class StartFormResearchCommandHandler(
             command.Car,
             description: null,
             descriptionSource: null,
+            initialPrompt: null,
             cancellationToken);
 }

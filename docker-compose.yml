@@ -20,6 +20,12 @@ services:
       SendGrid__ApiKey: ${SENDGRID_API_KEY:-}
       SendGrid__FromEmail: ${SENDGRID_FROM_EMAIL:-}
       SendGrid__SenderName: ${SENDGRID_SENDER_NAME:-AutoCheck AI}
+      # OpenRouter — LLM extraction (maps to OpenRouter:* in appsettings).
+      OpenRouter__ApiKey: ${OpenRouter__ApiKey:-${OPENROUTER_API_KEY:-}}
+      OpenRouter__BaseUrl: ${OpenRouter__BaseUrl:-${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}}
+      OpenRouter__ExtractionModel: ${OpenRouter__ExtractionModel:-${OPENROUTER_EXTRACTION_MODEL:-google/gemini-2.5-flash}}
+      OpenRouter__SiteUrl: ${OpenRouter__SiteUrl:-${OPENROUTER_SITE_URL:-https://autoverdikt.com}}
+      OpenRouter__SiteName: ${OpenRouter__SiteName:-${OPENROUTER_SITE_NAME:-AutoVerdikt}}
     depends_on:
       - mongodb
       - azurite

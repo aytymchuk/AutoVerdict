@@ -13,6 +13,7 @@ public abstract class StartResearchCommandHandlerBase(
         CarData? car,
         string? description,
         DescriptionSource? descriptionSource,
+        string? initialPrompt,
         CancellationToken cancellationToken)
     {
         var record = ResearchRecord.Create(
@@ -21,6 +22,7 @@ public abstract class StartResearchCommandHandlerBase(
             car,
             description,
             descriptionSource,
+            initialPrompt,
             timeProvider);
 
         var createResult = await repository.CreateAsync(record, cancellationToken);

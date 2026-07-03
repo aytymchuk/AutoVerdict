@@ -4,6 +4,8 @@ namespace AutoVerdikt.WebApi.Endpoints.Research;
 
 public sealed class CreateResearchDtoValidator : AbstractValidator<CreateResearchDto>
 {
+    public const int MaxTextLength = 10000;
+
     public CreateResearchDtoValidator()
     {
         RuleFor(x => x.InputMethod)
@@ -17,6 +19,15 @@ public sealed class CreateResearchDtoValidator : AbstractValidator<CreateResearc
             RuleFor(x => x.Car)
                 .NotNull()
                 .WithMessage("Car data is required for the form input method.");
+        });
+
+        When(x => x.InputMethod == "text", () =>
+        {
+            RuleFor(x => x.Text)
+                .NotEmpty()
+                .WithMessage("Text is required for the text input method.")
+                .MaximumLength(MaxTextLength)
+                .WithMessage($"Text must not exceed {MaxTextLength} characters.");
         });
     }
 }

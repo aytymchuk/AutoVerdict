@@ -26,6 +26,7 @@ public class ResearchRecordTests
             car,
             description: null,
             descriptionSource: null,
+            initialPrompt: null,
             TimeProvider.System);
 
         record.Status.ShouldBe(ResearchStatus.Draft);
@@ -49,6 +50,7 @@ public class ResearchRecordTests
             car,
             description: null,
             descriptionSource: null,
+            initialPrompt: null,
             TimeProvider.System);
 
         record.Status.ShouldBe(ResearchStatus.Pending);
@@ -70,6 +72,7 @@ public class ResearchRecordTests
             car,
             description: null,
             descriptionSource: null,
+            initialPrompt: null,
             TimeProvider.System);
 
         record.Name.ShouldBe("Volkswagen Golf 2018");
@@ -89,6 +92,7 @@ public class ResearchRecordTests
             new CarData { Make = "Volkswagen", Model = "Golf", Year = 2018 },
             description: null,
             descriptionSource: null,
+            initialPrompt: null,
             timeProvider);
 
         var renamed = record.Rename("My Custom Name", new FixedTimeProvider(laterTime));
