@@ -14,6 +14,10 @@
     <ProjectReference Include="..\AutoVerdikt.Application\AutoVerdikt.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="AutoVerdikt.Infrastructure.Tests" />
+  </ItemGroup>
+
 
 
 </Project>

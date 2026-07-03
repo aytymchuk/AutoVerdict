@@ -23,6 +23,8 @@ public class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, IAsyncLi
 
     public SpySendGridService SendGridSpy { get; } = new();
 
+    public FakeExtractionService ExtractionFake { get; } = new();
+
     public bool WhitelistEnabled { get; set; } = true;
 
     public async Task InitializeAsync() => await _mongoContainer.StartAsync();
@@ -58,7 +60,7 @@ public class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, IAsyncLi
             services.AddSingleton<ISendGridService>(SendGridSpy);
 
             services.RemoveAll<IExtractionService>();
-            services.AddSingleton<IExtractionService, FakeExtractionService>();
+            services.AddSingleton<IExtractionService>(ExtractionFake);
 
             services.AddAuthentication(options =>
             {

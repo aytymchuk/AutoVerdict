@@ -41,29 +41,32 @@ The `[ExtractionSchema]` system prompt should:
 
 `IExtractionService` automatically wraps every extraction type in an envelope that includes `confidence` (0.0–1.0) and `reasoning`. Authors of extraction models do **not** add these fields to their schema classes — they are handled in Infrastructure.
 
-- **`IsSuccess`** — the LLM call completed and the envelope parsed (no exception).
 - **`IsIntentMatch`** — `confidence >= 0.75`; the input appears on-topic for the schema's domain.
 - **`Reasoning`** — brief model explanation of the confidence score; surfaced to users on intent mismatch.
 
 Write `[ExtractionSchema]` system prompts that make off-topic input easy to identify (e.g. clearly state the expected domain) so the model assigns low confidence to unrelated text.
+
+Failures from the LLM call are returned as `Result.Fail` with a typed `ExtractionError`. Success metadata (`Value`, `Confidence`, `Reasoning`, token counts) lives in `ExtractionOutcome<T>`.
 
 ## Usage pattern
 
 ```csharp
 var result = await extractionService.ExtractAsync<MyFacts>(rawInput, ct);
 
-if (!result.IsSuccess)
+if (result.IsFailed)
 {
   // handle gracefully — do not throw
   return;
 }
 
-if (!result.IsIntentMatch)
+var outcome = result.Value;
+
+if (!outcome.IsIntentMatch)
 {
-  // input is unrelated to the expected domain — use result.Reasoning for the user message
+  // input is unrelated to the expected domain — use outcome.Reasoning for the user message
   return;
 }
 
-var facts = result.Value; // all fields nullable — check before using
-// Do NOT log or persist result.RawJson in production
+var facts = outcome.Value; // all fields nullable — check before using
+// Do NOT log or persist outcome.RawJson in production
 ```

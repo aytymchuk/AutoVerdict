@@ -1,7 +1,5 @@
-using AutoVerdikt.Infrastructure;
 using AutoVerdikt.Infrastructure.AI.Extraction;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Shouldly;
 
 namespace AutoVerdikt.Infrastructure.Tests.AI.Extraction;
@@ -9,22 +7,38 @@ namespace AutoVerdikt.Infrastructure.Tests.AI.Extraction;
 public sealed class OpenRouterHttpClientRegistrationTests
 {
     [Fact]
-    public void CreateClient_does_not_throw_when_OpenRouterHeadersHandler_is_registered()
+    public async Task OpenRouterHeadersHandler_adds_referer_and_title_headers()
     {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                [$"{OpenRouterOptions.SectionName}:BaseUrl"] = "https://openrouter.ai/api/v1",
-                [$"{OpenRouterOptions.SectionName}:ExtractionModel"] = "google/gemini-2.5-flash",
-            })
-            .Build();
+        var stub = new StubHandler();
+        var handler = new OpenRouterHeadersHandler(Options.Create(new OpenRouterOptions
+        {
+            SiteUrl = "https://autoverdikt.com",
+            SiteName = "AutoVerdikt"
+        }))
+        {
+            InnerHandler = stub
+        };
 
-        var services = new ServiceCollection();
-        services.AddInfrastructure(configuration);
+        var client = new HttpClient(handler) { BaseAddress = new Uri("https://openrouter.ai/api/v1/") };
+        await client.GetAsync("chat/completions");
 
-        using var provider = services.BuildServiceProvider();
-        var factory = provider.GetRequiredService<IHttpClientFactory>();
+        stub.LastRequest.ShouldNotBeNull();
+        stub.LastRequest!.Headers.TryGetValues(OpenRouterHeaderNames.Referer, out var refererValues).ShouldBeTrue();
+        refererValues!.Single().ShouldBe("https://autoverdikt.com");
+        stub.LastRequest.Headers.TryGetValues(OpenRouterHeaderNames.Title, out var titleValues).ShouldBeTrue();
+        titleValues!.Single().ShouldBe("AutoVerdikt");
+    }
 
-        Should.NotThrow(() => factory.CreateClient(OpenRouterOptions.SectionName));
+    private sealed class StubHandler : DelegatingHandler
+    {
+        public HttpRequestMessage? LastRequest { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            LastRequest = request;
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
+        }
     }
 }

@@ -57,6 +57,8 @@ function parseOptionalDecimal(value: string): number | null {
 const CURRENCIES = ['PLN', 'EUR', 'USD', 'UAH'] as const;
 type Currency = (typeof CURRENCIES)[number];
 
+const MAX_TEXT_LENGTH = 10000;
+
 function buildCarPayload(form: FormState, currency: Currency): CreateCarDataDto {
   return {
     make: form.make.trim() || null,
@@ -93,6 +95,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
 
   function validateText(value: string): string | null {
     if (!value.trim()) return t('dialog_error_text_required');
+    if (value.length > MAX_TEXT_LENGTH) return t('dialog_error_text_too_long');
     return null;
   }
   const defaultCurrencyValue: Currency =
@@ -235,8 +238,13 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                 <button
                   key={tab.id}
                   type="button"
-                  disabled={!tab.enabled}
-                  onClick={() => tab.enabled && setActiveTab(tab.id)}
+                  disabled={!tab.enabled || submitting}
+                  onClick={() => {
+                    if (tab.enabled && !submitting) {
+                      setActiveTab(tab.id);
+                      setError(null);
+                    }
+                  }}
                   className={[
                     'inline-flex items-center gap-2 rounded-t-xl border-b-2 px-4 py-3 text-[14px] font-medium transition-colors',
                     activeTab === tab.id
@@ -397,6 +405,7 @@ export function NewResearchDialog({ open, onClose, onCreated }: NewResearchDialo
                       setError(null);
                     }}
                     rows={10}
+                    maxLength={MAX_TEXT_LENGTH}
                     placeholder={t('dialog_text_placeholder')}
                     className={`${formInputClassName} resize-y`}
                     disabled={submitting}

@@ -2,6 +2,7 @@ using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Text.Json;
 using System.Text.Json.Schema;
+using System.Text.Json.Serialization.Metadata;
 using AutoVerdikt.Application.AI.Extraction;
 using AutoVerdikt.Application.Email;
 using AutoVerdikt.Application.Research.Create.StartText;
@@ -34,13 +35,13 @@ public static class InfrastructureServiceExtensions
 
         services.AddTransient<OpenRouterHeadersHandler>();
 
-        services.AddHttpClient(OpenRouterOptions.SectionName)
+        services.AddHttpClient(OpenRouterOptions.HttpClientName)
             .AddHttpMessageHandler<OpenRouterHeadersHandler>();
 
         services.AddSingleton<IChatClient>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<OpenRouterOptions>>().Value;
-            var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(OpenRouterOptions.SectionName);
+            var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(OpenRouterOptions.HttpClientName);
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
             var openAiClient = new OpenAIClient(
@@ -70,19 +71,17 @@ public static class InfrastructureServiceExtensions
     {
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            try
+            var schemaOptions = new JsonSerializerOptions
             {
-                var schema = JsonSchemaExporter.GetJsonSchemaAsNode(
-                    new JsonSerializerOptions(),
-                    typeof(CarListingFacts),
-                    new JsonSchemaExporterOptions { TreatNullObliviousAsNonNullable = false });
+                TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+            };
 
-                logger.LogDebug("Extraction schema for {Type}: {Schema}", nameof(CarListingFacts), schema);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to export extraction schema for {Type}", nameof(CarListingFacts));
-            }
+            var schema = JsonSchemaExporter.GetJsonSchemaAsNode(
+                schemaOptions,
+                typeof(CarListingFacts),
+                new JsonSchemaExporterOptions { TreatNullObliviousAsNonNullable = false });
+
+            logger.LogDebug("Extraction schema for {Type}: {Schema}", nameof(CarListingFacts), schema);
 
             return Task.CompletedTask;
         }

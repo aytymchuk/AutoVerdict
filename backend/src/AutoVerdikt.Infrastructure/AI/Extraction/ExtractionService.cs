@@ -1,5 +1,7 @@
 using System.Reflection;
 using AutoVerdikt.Application.AI.Extraction;
+using AutoVerdikt.Application.AI.Extraction.Errors;
+using FluentResults;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +17,7 @@ public sealed class ExtractionService(IChatClient chatClient, ILogger<Extraction
         Provide brief reasoning explaining the confidence score.
         """;
 
-    public async Task<ExtractionResult<T>> ExtractAsync<T>(
+    public async Task<Result<ExtractionOutcome<T>>> ExtractAsync<T>(
         string input,
         CancellationToken ct = default)
         where T : class, new()
@@ -45,29 +47,31 @@ public sealed class ExtractionService(IChatClient chatClient, ILogger<Extraction
             var rawJson = response.Text;
             var envelope = response.Result;
 
-            return new ExtractionResult<T>(
-                Value: envelope?.Data,
-                IsSuccess: envelope is not null,
-                Confidence: envelope?.Confidence ?? 0,
-                Reasoning: envelope?.Reasoning,
-                RawJson: rawJson,
-                ModelId: response.ModelId ?? "unknown",
-                InputTokens: inputTokens,
-                OutputTokens: outputTokens);
+            if (envelope is null)
+            {
+                return Result.Fail<ExtractionOutcome<T>>(
+                    new ExtractionError("Extraction returned no data."));
+            }
+
+            return Result.Ok(new ExtractionOutcome<T>
+            {
+                Value = envelope.Data,
+                Confidence = envelope.Confidence,
+                Reasoning = envelope.Reasoning,
+                RawJson = rawJson,
+                ModelId = response.ModelId ?? "unknown",
+                InputTokens = inputTokens,
+                OutputTokens = outputTokens
+            });
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Extraction failed for {ExtractionType}", typeof(T).Name);
-            return new ExtractionResult<T>(
-                Value: null,
-                IsSuccess: false,
-                Confidence: 0,
-                Reasoning: null,
-                RawJson: null,
-                ModelId: "unknown",
-                InputTokens: 0,
-                OutputTokens: 0,
-                ErrorMessage: ex.Message);
+            return Result.Fail<ExtractionOutcome<T>>(new ExtractionError(ex.Message));
         }
     }
 }

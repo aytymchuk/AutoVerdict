@@ -19,4 +19,8 @@ internal static partial class PipelineLog
     [LoggerMessage(EventId = 1004, Level = LogLevel.Error,
         Message = "Unhandled exception in handler for {MessageType}")]
     internal static partial void HandlerException(ILogger logger, string messageType, Exception exception);
+
+    [LoggerMessage(EventId = 1005, Level = LogLevel.Warning,
+        Message = "Car listing extraction failed: {Reason}")]
+    internal static partial void CarListingExtractionFailed(ILogger logger, string reason);
 }

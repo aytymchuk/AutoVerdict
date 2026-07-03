@@ -3,6 +3,7 @@ namespace AutoVerdikt.Infrastructure.AI.Extraction;
 public sealed class OpenRouterOptions
 {
     public const string SectionName = "OpenRouter";
+    public const string HttpClientName = "OpenRouterClient";
 
     public string ApiKey { get; init; } = string.Empty;
     public string BaseUrl { get; init; } = "https://openrouter.ai/api/v1";

@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using AutoVerdikt.Application.AI.Extraction.Errors;
 using AutoVerdikt.Application.Research.Create.StartText;
 using AutoVerdikt.Infrastructure.AI.Extraction;
 using Microsoft.Extensions.AI;
@@ -47,15 +48,15 @@ public sealed class ExtractionServiceTests
         var result = await service.ExtractAsync<CarListingFacts>("VW Golf 2018, 87k km, 42900 PLN");
 
         result.IsSuccess.ShouldBeTrue();
-        result.IsIntentMatch.ShouldBeTrue();
-        result.Confidence.ShouldBe(0.92);
-        result.Reasoning.ShouldBe("Clear used car listing with make, model, year, mileage, and price.");
-        result.Value!.Make.ShouldBe("Volkswagen");
-        result.Value.Model.ShouldBe("Golf");
-        result.Value.Year.ShouldBe(2018);
-        result.ModelId.ShouldBe("google/gemini-2.5-flash");
-        result.InputTokens.ShouldBe(100);
-        result.OutputTokens.ShouldBe(50);
+        result.Value.IsIntentMatch.ShouldBeTrue();
+        result.Value.Confidence.ShouldBe(0.92);
+        result.Value.Reasoning.ShouldBe("Clear used car listing with make, model, year, mileage, and price.");
+        result.Value.Value!.Make.ShouldBe("Volkswagen");
+        result.Value.Value.Model.ShouldBe("Golf");
+        result.Value.Value.Year.ShouldBe(2018);
+        result.Value.ModelId.ShouldBe("google/gemini-2.5-flash");
+        result.Value.InputTokens.ShouldBe(100);
+        result.Value.OutputTokens.ShouldBe(50);
     }
 
     [Fact]
@@ -72,9 +73,28 @@ public sealed class ExtractionServiceTests
 
         var result = await service.ExtractAsync<CarListingFacts>("some text");
 
-        result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldBe("LLM unavailable");
-        result.Value.ShouldBeNull();
+        result.IsFailed.ShouldBeTrue();
+        result.Errors[0].ShouldBeOfType<ExtractionError>();
+        result.Errors[0].Message.ShouldBe("LLM unavailable");
+    }
+
+    [Fact]
+    public async Task ExtractAsync_PropagatesCancellation_WhenTokenIsCanceled()
+    {
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        _chatClient
+          .Setup(c => c.GetResponseAsync(
+            It.IsAny<IEnumerable<ChatMessage>>(),
+            It.IsAny<ChatOptions>(),
+            It.IsAny<CancellationToken>()))
+          .ThrowsAsync(new OperationCanceledException(cts.Token));
+
+        var service = new ExtractionService(_chatClient.Object, NullLogger<ExtractionService>.Instance);
+
+        await Should.ThrowAsync<OperationCanceledException>(
+          () => service.ExtractAsync<CarListingFacts>("some text", cts.Token));
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using AutoVerdikt.Application.Abstractions;
 using AutoVerdikt.Application.AI.Extraction;
+using AutoVerdikt.Application.AI.Extraction.Errors;
 using AutoVerdikt.Application.Research;
 using AutoVerdikt.Application.Research.Create;
 using AutoVerdikt.Application.Research.Create.StartForm;
@@ -11,6 +12,7 @@ using AutoVerdikt.Application.Research.Rename;
 using AutoVerdikt.Domain.Research;
 using FluentResults;
 using Mediator;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Shouldly;
 
@@ -21,6 +23,20 @@ public class ResearchHandlerTests
     private readonly Mock<IResearchRepository> _repository = new();
     private readonly Mock<ICurrentUserContext> _currentUser = new();
     private readonly Mock<IExtractionService> _extractionService = new();
+
+    private static Result<ExtractionOutcome<CarListingFacts>> SuccessfulExtraction(
+        CarListingFacts facts,
+        double confidence = 0.95,
+        string? reasoning = null) =>
+        Result.Ok(new ExtractionOutcome<CarListingFacts>
+        {
+            Value = facts,
+            Confidence = confidence,
+            Reasoning = reasoning,
+            ModelId = "test-model",
+            InputTokens = 10,
+            OutputTokens = 5
+        });
 
     [Fact]
     public async Task StartForm_PersistsRecordWithPendingStatusAndAuthId()
@@ -63,30 +79,23 @@ public class ResearchHandlerTests
             .ReturnsAsync(Result.Ok());
         _extractionService
             .Setup(e => e.ExtractAsync<CarListingFacts>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ExtractionResult<CarListingFacts>(
-                new CarListingFacts
-                {
-                    Make = "Volkswagen",
-                    Model = "Golf",
-                    Year = 2018,
-                    MileageKm = 87200,
-                    Price = 42900,
-                    Currency = "PLN",
-                    Description = "Well-maintained Golf."
-                },
-                IsSuccess: true,
-                Confidence: 0.95,
-                Reasoning: null,
-                RawJson: null,
-                ModelId: "test-model",
-                InputTokens: 10,
-                OutputTokens: 5));
+            .ReturnsAsync(SuccessfulExtraction(new CarListingFacts
+            {
+                Make = "Volkswagen",
+                Model = "Golf",
+                Year = 2018,
+                MileageKm = 87200,
+                Price = 42900,
+                Currency = "PLN",
+                Description = "Well-maintained Golf."
+            }));
 
         var result = await new StartTextResearchCommandHandler(
             _repository.Object,
             _currentUser.Object,
             TimeProvider.System,
-            _extractionService.Object).Handle(
+            _extractionService.Object,
+            NullLogger<StartTextResearchCommandHandler>.Instance).Handle(
             new StartTextResearchCommand("VW Golf 2018 listing text"),
             CancellationToken.None);
 
@@ -111,27 +120,21 @@ public class ResearchHandlerTests
     {
         _extractionService
             .Setup(e => e.ExtractAsync<CarListingFacts>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ExtractionResult<CarListingFacts>(
-                null,
-                IsSuccess: false,
-                Confidence: 0,
-                Reasoning: null,
-                RawJson: null,
-                ModelId: "test-model",
-                InputTokens: 0,
-                OutputTokens: 0,
-                ErrorMessage: "LLM unavailable"));
+            .ReturnsAsync(Result.Fail<ExtractionOutcome<CarListingFacts>>(
+                new ExtractionError("LLM unavailable")));
 
         var result = await new StartTextResearchCommandHandler(
             _repository.Object,
             _currentUser.Object,
             TimeProvider.System,
-            _extractionService.Object).Handle(
+            _extractionService.Object,
+            NullLogger<StartTextResearchCommandHandler>.Instance).Handle(
             new StartTextResearchCommand("some text"),
             CancellationToken.None);
 
         result.IsFailed.ShouldBeTrue();
         result.Errors[0].ShouldBeOfType<ExtractionFailedError>();
+        result.Errors[0].Message.ShouldBe("Failed to extract car listing data from the provided text.");
         _repository.Verify(
             r => r.CreateAsync(It.IsAny<ResearchRecord>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -142,21 +145,17 @@ public class ResearchHandlerTests
     {
         _extractionService
             .Setup(e => e.ExtractAsync<CarListingFacts>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ExtractionResult<CarListingFacts>(
+            .ReturnsAsync(SuccessfulExtraction(
                 new CarListingFacts(),
-                IsSuccess: true,
-                Confidence: 0.2,
-                Reasoning: "Input is a recipe, not a car listing.",
-                RawJson: null,
-                ModelId: "test-model",
-                InputTokens: 10,
-                OutputTokens: 5));
+                confidence: 0.2,
+                reasoning: "Input is a recipe, not a car listing."));
 
         var result = await new StartTextResearchCommandHandler(
             _repository.Object,
             _currentUser.Object,
             TimeProvider.System,
-            _extractionService.Object).Handle(
+            _extractionService.Object,
+            NullLogger<StartTextResearchCommandHandler>.Instance).Handle(
             new StartTextResearchCommand("chocolate cake recipe"),
             CancellationToken.None);
 
@@ -173,21 +172,16 @@ public class ResearchHandlerTests
     {
         _extractionService
             .Setup(e => e.ExtractAsync<CarListingFacts>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ExtractionResult<CarListingFacts>(
+            .ReturnsAsync(SuccessfulExtraction(
                 new CarListingFacts { Description = "Some vague text mentioning a car for sale." },
-                IsSuccess: true,
-                Confidence: 0.85,
-                Reasoning: null,
-                RawJson: null,
-                ModelId: "test-model",
-                InputTokens: 10,
-                OutputTokens: 5));
+                confidence: 0.85));
 
         var result = await new StartTextResearchCommandHandler(
             _repository.Object,
             _currentUser.Object,
             TimeProvider.System,
-            _extractionService.Object).Handle(
+            _extractionService.Object,
+            NullLogger<StartTextResearchCommandHandler>.Instance).Handle(
             new StartTextResearchCommand("car for sale, contact me for details"),
             CancellationToken.None);
 

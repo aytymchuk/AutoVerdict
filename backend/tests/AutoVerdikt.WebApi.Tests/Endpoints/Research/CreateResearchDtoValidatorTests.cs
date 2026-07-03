@@ -54,4 +54,16 @@ public class CreateResearchDtoValidatorTests
 
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    [Fact]
+    public void Text_WithTextExceedingMaxLength_ShouldHaveValidationError()
+    {
+        var result = _validator.TestValidate(new CreateResearchDto(
+            "text",
+            null,
+            new string('a', CreateResearchDtoValidator.MaxTextLength + 1)));
+
+        result.ShouldHaveValidationErrorFor(x => x.Text)
+            .WithErrorMessage($"Text must not exceed {CreateResearchDtoValidator.MaxTextLength} characters.");
+    }
 }
