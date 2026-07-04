@@ -134,8 +134,15 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
             InitialPrompt = record.InitialPrompt,
             CreditsSpent = record.CreditsSpent,
             IsNameManual = record.IsNameManual,
+            LastAnalyzedAt = record.LastAnalyzedAt?.UtcDateTime,
+            RetentionPolicy = record.RetentionPolicy,
             CreatedAt = record.CreatedAt.UtcDateTime,
-            UpdatedAt = record.UpdatedAt.UtcDateTime
+            UpdatedAt = record.UpdatedAt.UtcDateTime,
+            Notes = record.Notes.Select(ToNoteDocument).ToList(),
+            Details = record.Details.Select(ToDetailDocument).ToList(),
+            Files = record.Files.Select(ToAttachedFileDocument).ToList(),
+            Questions = record.Questions.Select(ToQuestionDocument).ToList(),
+            Badges = record.Badges.Select(ToBadgeDocument).ToList()
         };
 
     private static ResearchRecord ToDomain(ResearchDocument document) =>
@@ -153,8 +160,17 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
             InitialPrompt = document.InitialPrompt,
             CreditsSpent = document.CreditsSpent,
             IsNameManual = document.IsNameManual,
+            LastAnalyzedAt = document.LastAnalyzedAt is null
+                ? null
+                : new DateTimeOffset(document.LastAnalyzedAt.Value, TimeSpan.Zero),
+            RetentionPolicy = document.RetentionPolicy,
             CreatedAt = new DateTimeOffset(document.CreatedAt, TimeSpan.Zero),
-            UpdatedAt = new DateTimeOffset(document.UpdatedAt, TimeSpan.Zero)
+            UpdatedAt = new DateTimeOffset(document.UpdatedAt, TimeSpan.Zero),
+            Notes = document.Notes.Select(ToNoteDomain).ToList(),
+            Details = document.Details.Select(ToDetailDomain).ToList(),
+            Files = document.Files.Select(ToAttachedFileDomain).ToList(),
+            Questions = document.Questions.Select(ToQuestionDomain).ToList(),
+            Badges = document.Badges.Select(ToBadgeDomain).ToList()
         };
 
     private static CarDataDocument ToCarDocument(CarData car) =>
@@ -248,6 +264,7 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
         {
             null => null,
             DescriptionSource.AiGeneratedFromText => "aiGeneratedFromText",
+            DescriptionSource.AiGeneratedFromFacts => "aiGeneratedFromFacts",
             _ => throw new ArgumentOutOfRangeException(nameof(descriptionSource), descriptionSource, null)
         };
 
@@ -255,6 +272,143 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
     {
         null => null,
         "aiGeneratedFromText" => DescriptionSource.AiGeneratedFromText,
+        "aiGeneratedFromFacts" => DescriptionSource.AiGeneratedFromFacts,
         _ => null
+    };
+
+    private static NoteDocument ToNoteDocument(Note note) =>
+        new()
+        {
+            Date = note.Date.UtcDateTime,
+            Text = note.Text
+        };
+
+    private static Note ToNoteDomain(NoteDocument document) =>
+        new()
+        {
+            Date = new DateTimeOffset(document.Date, TimeSpan.Zero),
+            Text = document.Text
+        };
+
+    private static DetailDocument ToDetailDocument(Detail detail) =>
+        new()
+        {
+            Name = detail.Name,
+            Value = detail.Value
+        };
+
+    private static Detail ToDetailDomain(DetailDocument document) =>
+        new()
+        {
+            Name = document.Name,
+            Value = document.Value
+        };
+
+    private static AttachedFileDocument ToAttachedFileDocument(AttachedFile file) =>
+        new()
+        {
+            Id = file.Id,
+            Kind = ToFileKindString(file.Kind),
+            FileName = file.FileName,
+            Url = file.Url,
+            ThumbnailUrl = file.ThumbnailUrl,
+            AgentDescription = file.AgentDescription,
+            ProcessingStatus = ToProcessingStatusString(file.ProcessingStatus),
+            RejectionReason = file.RejectionReason
+        };
+
+    private static AttachedFile ToAttachedFileDomain(AttachedFileDocument document) =>
+        new()
+        {
+            Id = document.Id,
+            Kind = ParseFileKind(document.Kind),
+            FileName = document.FileName,
+            Url = document.Url,
+            ThumbnailUrl = document.ThumbnailUrl,
+            AgentDescription = document.AgentDescription,
+            ProcessingStatus = ParseProcessingStatus(document.ProcessingStatus),
+            RejectionReason = document.RejectionReason
+        };
+
+    private static QuestionDocument ToQuestionDocument(Question question) =>
+        new()
+        {
+            QuestionText = question.QuestionText,
+            Answer = question.Answer,
+            ReviewedByAssistant = question.ReviewedByAssistant
+        };
+
+    private static Question ToQuestionDomain(QuestionDocument document) =>
+        new()
+        {
+            QuestionText = document.QuestionText,
+            Answer = document.Answer,
+            ReviewedByAssistant = document.ReviewedByAssistant
+        };
+
+    private static BadgeDocument ToBadgeDocument(Badge badge) =>
+        new()
+        {
+            Name = badge.Name,
+            Status = ToBadgeStatusString(badge.Status),
+            Description = badge.Description,
+            Source = badge.Source
+        };
+
+    private static Badge ToBadgeDomain(BadgeDocument document) =>
+        new()
+        {
+            Name = document.Name,
+            Status = ParseBadgeStatus(document.Status),
+            Description = document.Description,
+            Source = document.Source
+        };
+
+    private static string ToFileKindString(FileKind kind) => kind switch
+    {
+        FileKind.Photo => "photo",
+        FileKind.Document => "document",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+    };
+
+    private static FileKind ParseFileKind(string value) => value switch
+    {
+        "photo" => FileKind.Photo,
+        "document" => FileKind.Document,
+        _ => FileKind.Document
+    };
+
+    private static string ToProcessingStatusString(ProcessingStatus status) => status switch
+    {
+        ProcessingStatus.Pending => "pending",
+        ProcessingStatus.Processing => "processing",
+        ProcessingStatus.Completed => "completed",
+        ProcessingStatus.Rejected => "rejected",
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+    };
+
+    private static ProcessingStatus ParseProcessingStatus(string value) => value switch
+    {
+        "pending" => ProcessingStatus.Pending,
+        "processing" => ProcessingStatus.Processing,
+        "completed" => ProcessingStatus.Completed,
+        "rejected" => ProcessingStatus.Rejected,
+        _ => ProcessingStatus.Pending
+    };
+
+    private static string ToBadgeStatusString(BadgeStatus status) => status switch
+    {
+        BadgeStatus.Good => "good",
+        BadgeStatus.Warning => "warning",
+        BadgeStatus.Critical => "critical",
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+    };
+
+    private static BadgeStatus ParseBadgeStatus(string value) => value switch
+    {
+        "good" => BadgeStatus.Good,
+        "warning" => BadgeStatus.Warning,
+        "critical" => BadgeStatus.Critical,
+        _ => BadgeStatus.Good
     };
 }
