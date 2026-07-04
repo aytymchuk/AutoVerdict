@@ -160,9 +160,6 @@ export function LandingPage() {
               <h2 className="font-headline-lg text-[48px] leading-[1.2] font-semibold text-on-surface">
                 {t('landing_hiw_title')}
               </h2>
-              <p className="text-[20px] leading-[1.6] text-on-surface-variant mt-4 max-w-2xl mx-auto">
-                {t('landing_hiw_description')}
-              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-lg relative">
               {/* Connector Line (Desktop) */}
@@ -237,7 +234,8 @@ export function LandingPage() {
               <h3 className="font-headline-md text-[20px] font-semibold text-on-surface mb-2">
                 {t('landing_data_card1_title')}
               </h3>
-              <p className="text-[14px] text-on-surface-variant">{t('landing_data_card1_desc')}</p>
+              <p className="text-[14px] text-on-surface-variant mb-md">{t('landing_data_card1_desc')}</p>
+              <p className="mt-auto text-[12px] text-text-secondary">{t('landing_data_card1_micro')}</p>
             </div>
 
             {/* Card 2 */}
@@ -253,7 +251,8 @@ export function LandingPage() {
               <h3 className="font-headline-md text-[20px] font-semibold text-on-surface mb-2">
                 {t('landing_data_card2_title')}
               </h3>
-              <p className="text-[14px] text-on-surface-variant">{t('landing_data_card2_desc')}</p>
+              <p className="text-[14px] text-on-surface-variant mb-md">{t('landing_data_card2_desc')}</p>
+              <p className="mt-auto text-[12px] text-text-secondary">{t('landing_data_card2_micro')}</p>
             </div>
 
             {/* Card 3 */}
@@ -269,7 +268,8 @@ export function LandingPage() {
               <h3 className="font-headline-md text-[20px] font-semibold text-on-surface mb-2">
                 {t('landing_data_card3_title')}
               </h3>
-              <p className="text-[14px] text-on-surface-variant">{t('landing_data_card3_desc')}</p>
+              <p className="text-[14px] text-on-surface-variant mb-md">{t('landing_data_card3_desc')}</p>
+              <p className="mt-auto text-[12px] text-text-secondary">{t('landing_data_card3_micro')}</p>
             </div>
           </div>
         </section>
@@ -389,16 +389,25 @@ export function LandingPage() {
           <div className="max-w-[1280px] mx-auto px-gutter text-center">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-lg mb-8">
               <div>
-                <div className="font-headline-lg text-[48px] font-bold text-primary-container mb-2">0</div>
-                <div className="text-[16px] text-text-secondary">{t('landing_stats_label1')}</div>
+                <div className="font-headline-lg text-[48px] font-bold text-primary-container mb-2">
+                  {t('landing_stats_value1')}
+                </div>
+                <div className="text-[16px] font-medium text-on-surface mb-1">{t('landing_stats_label1')}</div>
+                <div className="text-[14px] text-text-secondary">{t('landing_stats_caption1')}</div>
               </div>
               <div>
-                <div className="font-headline-lg text-[48px] font-bold text-primary-container mb-2">100%</div>
-                <div className="text-[16px] text-text-secondary">{t('landing_stats_label2')}</div>
+                <div className="font-headline-lg text-[48px] font-bold text-primary-container mb-2">
+                  {t('landing_stats_value2')}
+                </div>
+                <div className="text-[16px] font-medium text-on-surface mb-1">{t('landing_stats_label2')}</div>
+                <div className="text-[14px] text-text-secondary">{t('landing_stats_caption2')}</div>
               </div>
               <div>
-                <div className="font-headline-lg text-[48px] font-bold text-primary-container mb-2">24/7</div>
-                <div className="text-[16px] text-text-secondary">{t('landing_stats_label3')}</div>
+                <div className="font-headline-lg text-[48px] font-bold text-primary-container mb-2">
+                  {t('landing_stats_value3')}
+                </div>
+                <div className="text-[16px] font-medium text-on-surface mb-1">{t('landing_stats_label3')}</div>
+                <div className="text-[14px] text-text-secondary">{t('landing_stats_caption3')}</div>
               </div>
             </div>
             <p className="font-mono-sm text-[12px] text-text-secondary flex items-center justify-center gap-2">
