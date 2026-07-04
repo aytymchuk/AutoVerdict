@@ -97,6 +97,13 @@ cd frontend && VITE_API_TARGET=http://localhost:5065 pnpm dev
 cd backend && dotnet run --project src/AutoVerdikt.WebApi
 ```
 
+When MongoDB runs locally (e.g. via `make up`), supply credentials via environment variable or user-secrets — `appsettings.json` does not embed them:
+
+```bash
+export MongoDb__ConnectionString='mongodb://root:example@localhost:27017/?authSource=admin&replicaSet=rs0'
+# or: dotnet user-secrets set "MongoDb:ConnectionString" "mongodb://root:example@localhost:27017/?authSource=admin&replicaSet=rs0" --project src/AutoVerdikt.WebApi
+```
+
 ## Development Commands
 
 ```bash

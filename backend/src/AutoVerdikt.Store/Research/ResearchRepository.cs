@@ -3,6 +3,7 @@ using AutoVerdikt.Application.Research;
 using AutoVerdikt.Application.Research.Errors;
 using AutoVerdikt.Domain.Research;
 using FluentResults;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace AutoVerdikt.Store.Research;
@@ -56,39 +57,91 @@ internal sealed class ResearchRepository(
                 Builders<ResearchDocument>.Filter.Eq(r => r.Id, id),
                 Builders<ResearchDocument>.Filter.Eq(r => r.AuthId, authId));
 
-            var document = await researchCollection.Find(filter).FirstOrDefaultAsync(cancellationToken);
+            using var rootSession = await mongoClient.StartSessionAsync(
+                new ClientSessionOptions { Snapshot = true },
+                cancellationToken);
+
+            var document = await researchCollection
+                .Find(rootSession, filter)
+                .FirstOrDefaultAsync(cancellationToken);
+
             if (document is null)
                 return Result.Ok<ResearchRecord?>(null);
 
-            var notes = await notesCollection
-                .Find(ResearchChildFilters.Notes(id, authId))
-                .ToListAsync(cancellationToken);
-            var details = await detailsCollection
-                .Find(ResearchChildFilters.Details(id, authId))
-                .ToListAsync(cancellationToken);
-            var files = await filesCollection
-                .Find(ResearchChildFilters.Files(id, authId))
-                .ToListAsync(cancellationToken);
-            var questions = await questionsCollection
-                .Find(ResearchChildFilters.Questions(id, authId))
-                .ToListAsync(cancellationToken);
-            var badges = await badgesCollection
-                .Find(ResearchChildFilters.Badges(id, authId))
-                .ToListAsync(cancellationToken);
+            var children = await FetchChildRecordsAsync(
+                id,
+                authId,
+                rootSession.GetSnapshotTime(),
+                cancellationToken);
 
             return Result.Ok<ResearchRecord?>(ResearchDocumentMapper.ToDomain(
                 document,
-                notes.Select(NoteMapper.ToDomain).ToList(),
-                details.Select(DetailMapper.ToDomain).ToList(),
-                files.Select(AttachedFileMapper.ToDomain).ToList(),
-                questions.Select(QuestionMapper.ToDomain).ToList(),
-                badges.Select(BadgeMapper.ToDomain).ToList()));
+                children.Notes,
+                children.Details,
+                children.Files,
+                children.Questions,
+                children.Badges));
         }
         catch (MongoException)
         {
             return Result.Fail<ResearchRecord?>(new Error("Failed to load research record."));
         }
     }
+
+    // Reads all child collections for a research record from the same point-in-time
+    // snapshot as the root document, fetching them in parallel via per-collection sessions.
+    private async Task<ResearchChildRecords> FetchChildRecordsAsync(
+        Guid researchId,
+        string authId,
+        BsonTimestamp snapshotTime,
+        CancellationToken cancellationToken)
+    {
+        var childSessionOptions = new ClientSessionOptions { Snapshot = true, SnapshotTime = snapshotTime };
+
+        using var notesSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+        using var detailsSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+        using var filesSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+        using var questionsSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+        using var badgesSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+
+        var notesTask = notesCollection
+            .Find(notesSession, ResearchChildFilters.Notes(researchId, authId))
+            .ToListAsync(cancellationToken);
+        var detailsTask = detailsCollection
+            .Find(detailsSession, ResearchChildFilters.Details(researchId, authId))
+            .ToListAsync(cancellationToken);
+        var filesTask = filesCollection
+            .Find(filesSession, ResearchChildFilters.Files(researchId, authId))
+            .ToListAsync(cancellationToken);
+        var questionsTask = questionsCollection
+            .Find(questionsSession, ResearchChildFilters.Questions(researchId, authId))
+            .ToListAsync(cancellationToken);
+        var badgesTask = badgesCollection
+            .Find(badgesSession, ResearchChildFilters.Badges(researchId, authId))
+            .ToListAsync(cancellationToken);
+
+        await Task.WhenAll(notesTask, detailsTask, filesTask, questionsTask, badgesTask);
+
+        var notes = await notesTask;
+        var details = await detailsTask;
+        var files = await filesTask;
+        var questions = await questionsTask;
+        var badges = await badgesTask;
+
+        return new ResearchChildRecords(
+            notes.ConvertAll(NoteMapper.ToDomain),
+            details.ConvertAll(DetailMapper.ToDomain),
+            files.ConvertAll(AttachedFileMapper.ToDomain),
+            questions.ConvertAll(QuestionMapper.ToDomain),
+            badges.ConvertAll(BadgeMapper.ToDomain));
+    }
+
+    private sealed record ResearchChildRecords(
+        IReadOnlyList<Note> Notes,
+        IReadOnlyList<Detail> Details,
+        IReadOnlyList<AttachedFile> Files,
+        IReadOnlyList<Question> Questions,
+        IReadOnlyList<Badge> Badges);
 
     public async Task<Result> UpdateAsync(
         ResearchRecord record,
@@ -186,7 +239,7 @@ internal sealed class ResearchRepository(
                 .Limit(pageSize)
                 .ToListAsync(cancellationToken);
 
-            var items = documents.Select(ResearchDocumentMapper.ToDomainListItem).ToList();
+            var items = documents.ConvertAll(ResearchDocumentMapper.ToDomainListItem);
             return Result.Ok(new PaginatedResult<ResearchRecord>(items, total));
         }
         catch (MongoException)

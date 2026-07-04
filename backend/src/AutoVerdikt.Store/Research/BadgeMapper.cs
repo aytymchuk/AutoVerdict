@@ -39,6 +39,6 @@ internal static class BadgeMapper
         "good" => BadgeStatus.Good,
         "warning" => BadgeStatus.Warning,
         "critical" => BadgeStatus.Critical,
-        _ => BadgeStatus.Good
+        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unrecognized badge status")
     };
 }

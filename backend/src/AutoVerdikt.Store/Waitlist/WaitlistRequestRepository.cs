@@ -51,7 +51,7 @@ internal sealed class WaitlistRequestRepository(IMongoCollection<WaitlistRequest
             .SortByDescending(w => w.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return documents.Select(Map).ToList();
+        return documents.ConvertAll(Map);
     }
 
     private static WaitlistRequestDocument MapToDocument(WaitlistRequest request) => new()

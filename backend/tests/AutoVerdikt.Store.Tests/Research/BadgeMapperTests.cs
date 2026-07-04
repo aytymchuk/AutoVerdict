@@ -89,7 +89,7 @@ public class BadgeMapperTests
     }
 
     [Fact]
-    public void ToDomain_UnknownStatus_DefaultsToGood()
+    public void ToDomain_UnknownStatus_ThrowsArgumentOutOfRangeException()
     {
         var document = new BadgeDocument
         {
@@ -101,8 +101,9 @@ public class BadgeMapperTests
             Description = "Test"
         };
 
-        var badge = BadgeMapper.ToDomain(document);
+        var act = () => BadgeMapper.ToDomain(document);
 
-        badge.Status.ShouldBe(BadgeStatus.Good);
+        act.ShouldThrow<ArgumentOutOfRangeException>()
+            .ParamName.ShouldBe("value");
     }
 }
