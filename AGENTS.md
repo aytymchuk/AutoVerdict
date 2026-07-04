@@ -15,6 +15,7 @@ AutoVerdikt is an AI investigator for used car buyers in Poland. It cross-verifi
 1. **Language Policy:** All user-facing text defaults to English. Supported: en, uk, pl. Russian is NEVER supported (no text, comments, or translation keys). If browser language is 'ru', use Ukrainian (uk).
 2. **AI Grounding:** Every flag or claim in a generated report must cite its source (e.g., "CEPiK, p. 2"). No citation = no flag. No AI speculation.
 3. **Secrets:** Never hardcode keys. Use `.env.local` for local development and Azure Key Vault for production.
+4. **Copy Consistency:** User-facing marketing/product copy must stay generic and consistent across locales (en/pl/uk) — never name specific competitor products, sites, or brands in shipped copy without explicit product/legal sign-off.
 
 ## Local Development Stack
 - **Recommended (full dev stack):** `make dev` or `make up` — API + MongoDB + Azurite + Seq + Vite in Docker on http://localhost:5173 (HMR via volume mount).

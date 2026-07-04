@@ -110,7 +110,7 @@ export const landing = {
     landing_hiw_title: 'Jak to działa',
     landing_hiw_step1_title: 'Wklej dane ogłoszenia',
     landing_hiw_step1_desc:
-      'Skopiuj tekst z Otomoto lub wpisz podstawowe informacje o aucie ręcznie. Możesz też dodać zdjęcia lub dokumenty.',
+      'Skopiuj tekst z ogłoszenia lub wpisz podstawowe informacje o aucie ręcznie. Możesz też dodać zdjęcia lub dokumenty.',
     landing_hiw_step2_title: 'AI analizuje w kilkanaście sekund',
     landing_hiw_step2_desc:
       'Sprawdzamy dane techniczne, oceniamy ryzyko i porównujemy z rynkiem. Twoje dane nie są nigdzie zapisywane.',
@@ -200,7 +200,7 @@ export const landing = {
     landing_hiw_title: 'Як це працює',
     landing_hiw_step1_title: 'Передайте дані оголошення',
     landing_hiw_step1_desc:
-      'Скопіюйте текст з Otomoto або введіть основні дані вручну. Можна додати фото чи документи.',
+      'Скопіюйте текст з оголошення або введіть основні дані вручну. Можна додати фото чи документи.',
     landing_hiw_step2_title: 'AI аналізує за кілька секунд',
     landing_hiw_step2_desc:
       'Перевіряємо технічні дані, оцінюємо ризик, порівнюємо з ринком. Ваші дані не зберігаються.',
