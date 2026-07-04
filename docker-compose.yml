@@ -12,7 +12,7 @@ services:
       # Clerk JWT validation — issuer and allowed frontend origin (azp / CORS).
       Clerk__Authority: ${Clerk__Authority:-}
       Clerk__AuthorizedParty: ${Clerk__AuthorizedParty:-http://localhost:5173}
-      MongoDb__ConnectionString: mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-example}@mongodb:27017/?authSource=admin
+      MongoDb__ConnectionString: mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-example}@mongodb:27017/?authSource=admin&replicaSet=rs0
       # Inside the compose network Seq is reachable by service name, not localhost.
       OpenTelemetry__Otlp__Endpoint: http://seq:80/ingest/otlp
       # Whitelist gate (S-01.3). When true, only whitelisted users can access product routes.
@@ -27,9 +27,12 @@ services:
       OpenRouter__SiteUrl: ${OpenRouter__SiteUrl:-${OPENROUTER_SITE_URL:-https://autoverdikt.com}}
       OpenRouter__SiteName: ${OpenRouter__SiteName:-${OPENROUTER_SITE_NAME:-AutoVerdikt}}
     depends_on:
-      - mongodb
-      - azurite
-      - seq
+      mongodb-init:
+        condition: service_completed_successfully
+      azurite:
+        condition: service_started
+      seq:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -63,6 +66,7 @@ services:
   mongodb:
     image: mongo:8.0
     platform: linux/amd64
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     ports:
       - "27017:27017"
     environment:
@@ -70,6 +74,30 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-example}
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  mongodb-init:
+    image: mongo:8.0
+    platform: linux/amd64
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: "no"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:-root}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-example}
+    entrypoint: >
+      bash -c "
+      until mongosh mongodb://$$MONGO_INITDB_ROOT_USERNAME:$$MONGO_INITDB_ROOT_PASSWORD@mongodb:27017/admin --eval 'db.runCommand({ ping: 1 })' 2>/dev/null; do sleep 1; done;
+      mongosh mongodb://$$MONGO_INITDB_ROOT_USERNAME:$$MONGO_INITDB_ROOT_PASSWORD@mongodb:27017/admin --eval \"
+        try { rs.status(); } catch(e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }); }
+      \"
+      "
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     ports:

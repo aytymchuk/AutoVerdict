@@ -19,6 +19,7 @@ public class AutoVerdiktWebApiFactory : WebApplicationFactory<Program>, IAsyncLi
 {
     private readonly MongoDbContainer _mongoContainer = new MongoDbBuilder()
         .WithImage("mongo:8.0")
+        .WithReplicaSet()
         .Build();
 
     public SpySendGridService SendGridSpy { get; } = new();
