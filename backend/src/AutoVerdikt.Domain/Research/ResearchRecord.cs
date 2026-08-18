@@ -14,8 +14,15 @@ public record ResearchRecord
     public string? InitialPrompt { get; init; }
     public int CreditsSpent { get; init; }
     public bool IsNameManual { get; init; }
+    public DateTimeOffset? LastAnalyzedAt { get; init; }
+    public string? RetentionPolicy { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }
+    public IReadOnlyList<Note> Notes { get; init; } = [];
+    public IReadOnlyList<Detail> Details { get; init; } = [];
+    public IReadOnlyList<AttachedFile> Files { get; init; } = [];
+    public IReadOnlyList<Question> Questions { get; init; } = [];
+    public IReadOnlyList<Badge> Badges { get; init; } = [];
 
     public static ResearchRecord Create(
         string authId,
@@ -48,8 +55,15 @@ public record ResearchRecord
             InitialPrompt = initialPrompt,
             CreditsSpent = 0,
             IsNameManual = false,
+            LastAnalyzedAt = null,
+            RetentionPolicy = null,
             CreatedAt = now,
-            UpdatedAt = now
+            UpdatedAt = now,
+            Notes = [],
+            Details = [],
+            Files = [],
+            Questions = [],
+            Badges = []
         };
     }
 

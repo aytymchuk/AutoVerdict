@@ -46,6 +46,21 @@ public static class StoreServiceExtensions
         services.AddSingleton<IMongoCollection<ResearchDocument>>(sp =>
             sp.GetRequiredService<IMongoDatabase>().GetCollection<ResearchDocument>("research"));
 
+        services.AddSingleton<IMongoCollection<NoteDocument>>(sp =>
+            sp.GetRequiredService<IMongoDatabase>().GetCollection<NoteDocument>("research_notes"));
+
+        services.AddSingleton<IMongoCollection<DetailDocument>>(sp =>
+            sp.GetRequiredService<IMongoDatabase>().GetCollection<DetailDocument>("research_details"));
+
+        services.AddSingleton<IMongoCollection<AttachedFileDocument>>(sp =>
+            sp.GetRequiredService<IMongoDatabase>().GetCollection<AttachedFileDocument>("research_files"));
+
+        services.AddSingleton<IMongoCollection<QuestionDocument>>(sp =>
+            sp.GetRequiredService<IMongoDatabase>().GetCollection<QuestionDocument>("research_questions"));
+
+        services.AddSingleton<IMongoCollection<BadgeDocument>>(sp =>
+            sp.GetRequiredService<IMongoDatabase>().GetCollection<BadgeDocument>("research_badges"));
+
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IWhitelistRepository, WhitelistRepository>();
         services.AddScoped<IWaitlistRequestRepository, WaitlistRequestRepository>();

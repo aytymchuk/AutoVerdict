@@ -19,7 +19,7 @@ AutoVerdikt is an AI investigator for used car buyers in Poland. It cross-verifi
 ## Local Development Stack
 - **Recommended (full dev stack):** `make dev` or `make up` — API + MongoDB + Azurite + Seq + Vite in Docker on http://localhost:5173 (HMR via volume mount).
 - **Frontend on host:** `cd frontend && pnpm dev` (requires API already running via `make up`; set `VITE_API_TARGET=http://localhost:5065`).
-- **Backend on host:** `cd backend && dotnet run` (.NET 10 Minimal API) instead of Docker API when needed.
+- **Backend on host:** `cd backend && dotnet run` (.NET 10 Minimal API) instead of Docker API when needed. Set `MongoDb__ConnectionString` (e.g. `mongodb://root:example@localhost:27017/?authSource=admin&replicaSet=rs0`) via environment variable or `dotnet user-secrets` — the checked-in `appsettings.json` has no credentials.
 
 ## Tooling Reference
 - **Code Formatting & Linting:** Run `pnpm lint` in the `frontend/` directory to lint and format code.

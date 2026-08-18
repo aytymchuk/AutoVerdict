@@ -102,6 +102,7 @@ internal static class ResearchDtoMappings
         {
             null => null,
             DescriptionSource.AiGeneratedFromText => "aiGeneratedFromText",
+            DescriptionSource.AiGeneratedFromFacts => "aiGeneratedFromFacts",
             _ => throw new ArgumentOutOfRangeException(nameof(descriptionSource), descriptionSource, null)
         };
 }

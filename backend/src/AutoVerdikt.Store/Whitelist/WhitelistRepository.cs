@@ -72,7 +72,7 @@ internal sealed class WhitelistRepository(IMongoCollection<WaitlistRequestDocume
             .Limit(pageSize)
             .ToListAsync(cancellationToken);
 
-        var items = documents.Select(Map).ToList();
+        var items = documents.ConvertAll(Map);
         return new PaginatedResult<WhitelistEntry>(items, total);
     }
 

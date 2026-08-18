@@ -3,17 +3,41 @@ using AutoVerdikt.Application.Research;
 using AutoVerdikt.Application.Research.Errors;
 using AutoVerdikt.Domain.Research;
 using FluentResults;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace AutoVerdikt.Store.Research;
 
-internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> collection) : IResearchRepository
+internal sealed class ResearchRepository(
+    IMongoClient mongoClient,
+    IMongoCollection<ResearchDocument> researchCollection,
+    IMongoCollection<NoteDocument> notesCollection,
+    IMongoCollection<DetailDocument> detailsCollection,
+    IMongoCollection<AttachedFileDocument> filesCollection,
+    IMongoCollection<QuestionDocument> questionsCollection,
+    IMongoCollection<BadgeDocument> badgesCollection) : IResearchRepository
 {
+    private static readonly TransactionOptions TransactionOptions = new(
+        readConcern: ReadConcern.Snapshot,
+        writeConcern: WriteConcern.WMajority);
+
     public async Task<Result> CreateAsync(ResearchRecord record, CancellationToken cancellationToken = default)
     {
         try
         {
-            await collection.InsertOneAsync(ToDocument(record), cancellationToken: cancellationToken);
+            using var session = await mongoClient.StartSessionAsync(cancellationToken: cancellationToken);
+            await session.WithTransactionAsync(
+                async (s, ct) =>
+                {
+                    await researchCollection.InsertOneAsync(
+                        s,
+                        ResearchDocumentMapper.ToDocument(record),
+                        cancellationToken: ct);
+                    await InsertChildDocumentsAsync(s, record, ct);
+                    return true;
+                },
+                TransactionOptions,
+                cancellationToken);
             return Result.Ok();
         }
         catch (MongoException)
@@ -33,14 +57,91 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
                 Builders<ResearchDocument>.Filter.Eq(r => r.Id, id),
                 Builders<ResearchDocument>.Filter.Eq(r => r.AuthId, authId));
 
-            var document = await collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
-            return Result.Ok(document is null ? null : ToDomain(document));
+            using var rootSession = await mongoClient.StartSessionAsync(
+                new ClientSessionOptions { Snapshot = true },
+                cancellationToken);
+
+            var document = await researchCollection
+                .Find(rootSession, filter)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (document is null)
+                return Result.Ok<ResearchRecord?>(null);
+
+            var children = await FetchChildRecordsAsync(
+                id,
+                authId,
+                rootSession.GetSnapshotTime(),
+                cancellationToken);
+
+            return Result.Ok<ResearchRecord?>(ResearchDocumentMapper.ToDomain(
+                document,
+                children.Notes,
+                children.Details,
+                children.Files,
+                children.Questions,
+                children.Badges));
         }
         catch (MongoException)
         {
             return Result.Fail<ResearchRecord?>(new Error("Failed to load research record."));
         }
     }
+
+    // Reads all child collections for a research record from the same point-in-time
+    // snapshot as the root document, fetching them in parallel via per-collection sessions.
+    private async Task<ResearchChildRecords> FetchChildRecordsAsync(
+        Guid researchId,
+        string authId,
+        BsonTimestamp snapshotTime,
+        CancellationToken cancellationToken)
+    {
+        var childSessionOptions = new ClientSessionOptions { Snapshot = true, SnapshotTime = snapshotTime };
+
+        using var notesSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+        using var detailsSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+        using var filesSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+        using var questionsSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+        using var badgesSession = await mongoClient.StartSessionAsync(childSessionOptions, cancellationToken);
+
+        var notesTask = notesCollection
+            .Find(notesSession, ResearchChildFilters.Notes(researchId, authId))
+            .ToListAsync(cancellationToken);
+        var detailsTask = detailsCollection
+            .Find(detailsSession, ResearchChildFilters.Details(researchId, authId))
+            .ToListAsync(cancellationToken);
+        var filesTask = filesCollection
+            .Find(filesSession, ResearchChildFilters.Files(researchId, authId))
+            .ToListAsync(cancellationToken);
+        var questionsTask = questionsCollection
+            .Find(questionsSession, ResearchChildFilters.Questions(researchId, authId))
+            .ToListAsync(cancellationToken);
+        var badgesTask = badgesCollection
+            .Find(badgesSession, ResearchChildFilters.Badges(researchId, authId))
+            .ToListAsync(cancellationToken);
+
+        await Task.WhenAll(notesTask, detailsTask, filesTask, questionsTask, badgesTask);
+
+        var notes = await notesTask;
+        var details = await detailsTask;
+        var files = await filesTask;
+        var questions = await questionsTask;
+        var badges = await badgesTask;
+
+        return new ResearchChildRecords(
+            notes.ConvertAll(NoteMapper.ToDomain),
+            details.ConvertAll(DetailMapper.ToDomain),
+            files.ConvertAll(AttachedFileMapper.ToDomain),
+            questions.ConvertAll(QuestionMapper.ToDomain),
+            badges.ConvertAll(BadgeMapper.ToDomain));
+    }
+
+    private sealed record ResearchChildRecords(
+        IReadOnlyList<Note> Notes,
+        IReadOnlyList<Detail> Details,
+        IReadOnlyList<AttachedFile> Files,
+        IReadOnlyList<Question> Questions,
+        IReadOnlyList<Badge> Badges);
 
     public async Task<Result> UpdateAsync(
         ResearchRecord record,
@@ -49,16 +150,30 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
     {
         try
         {
-            var filter = Builders<ResearchDocument>.Filter.And(
-                Builders<ResearchDocument>.Filter.Eq(r => r.Id, record.Id),
-                Builders<ResearchDocument>.Filter.Eq(r => r.AuthId, authId));
+            using var session = await mongoClient.StartSessionAsync(cancellationToken: cancellationToken);
+            var updated = await session.WithTransactionAsync(
+                async (s, ct) =>
+                {
+                    var filter = Builders<ResearchDocument>.Filter.And(
+                        Builders<ResearchDocument>.Filter.Eq(r => r.Id, record.Id),
+                        Builders<ResearchDocument>.Filter.Eq(r => r.AuthId, authId));
 
-            var result = await collection.ReplaceOneAsync(
-                filter,
-                ToDocument(record),
-                cancellationToken: cancellationToken);
+                    var result = await researchCollection.ReplaceOneAsync(
+                        s,
+                        filter,
+                        ResearchDocumentMapper.ToDocument(record),
+                        cancellationToken: ct);
 
-            if (result.MatchedCount == 0)
+                    if (result.MatchedCount == 0)
+                        return false;
+
+                    await ReplaceChildDocumentsAsync(s, record, authId, ct);
+                    return true;
+                },
+                TransactionOptions,
+                cancellationToken);
+
+            if (!updated)
                 return Result.Fail(new ResearchNotFoundError());
 
             return Result.Ok();
@@ -76,12 +191,25 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
     {
         try
         {
-            var filter = Builders<ResearchDocument>.Filter.And(
-                Builders<ResearchDocument>.Filter.Eq(r => r.Id, id),
-                Builders<ResearchDocument>.Filter.Eq(r => r.AuthId, authId));
+            using var session = await mongoClient.StartSessionAsync(cancellationToken: cancellationToken);
+            var deleted = await session.WithTransactionAsync(
+                async (s, ct) =>
+                {
+                    var filter = Builders<ResearchDocument>.Filter.And(
+                        Builders<ResearchDocument>.Filter.Eq(r => r.Id, id),
+                        Builders<ResearchDocument>.Filter.Eq(r => r.AuthId, authId));
 
-            var result = await collection.DeleteOneAsync(filter, cancellationToken);
-            if (result.DeletedCount == 0)
+                    var result = await researchCollection.DeleteOneAsync(s, filter, cancellationToken: ct);
+                    if (result.DeletedCount == 0)
+                        return false;
+
+                    await DeleteChildDocumentsAsync(s, id, authId, ct);
+                    return true;
+                },
+                TransactionOptions,
+                cancellationToken);
+
+            if (!deleted)
                 return Result.Fail(new ResearchNotFoundError());
 
             return Result.Ok();
@@ -92,6 +220,7 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
         }
     }
 
+    // List queries only the core research collection; child lists are not loaded.
     public async Task<Result<PaginatedResult<ResearchRecord>>> ListByAuthIdAsync(
         string authId,
         int page,
@@ -102,15 +231,15 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
         {
             var filter = Builders<ResearchDocument>.Filter.Eq(r => r.AuthId, authId);
             var skip = Math.Max(0, (page - 1) * pageSize);
-            var total = await collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
-            var documents = await collection
+            var total = await researchCollection.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+            var documents = await researchCollection
                 .Find(filter)
                 .SortByDescending(r => r.UpdatedAt)
                 .Skip(skip)
                 .Limit(pageSize)
                 .ToListAsync(cancellationToken);
 
-            var items = documents.Select(ToDomain).ToList();
+            var items = documents.ConvertAll(ResearchDocumentMapper.ToDomainListItem);
             return Result.Ok(new PaginatedResult<ResearchRecord>(items, total));
         }
         catch (MongoException)
@@ -119,142 +248,87 @@ internal sealed class ResearchRepository(IMongoCollection<ResearchDocument> coll
         }
     }
 
-    private static ResearchDocument ToDocument(ResearchRecord record) =>
-        new()
+    private async Task ReplaceChildDocumentsAsync(
+        IClientSessionHandle session,
+        ResearchRecord record,
+        string authId,
+        CancellationToken cancellationToken)
+    {
+        await DeleteChildDocumentsAsync(session, record.Id, authId, cancellationToken);
+        await InsertChildDocumentsAsync(session, record, cancellationToken);
+    }
+
+    private async Task InsertChildDocumentsAsync(
+        IClientSessionHandle session,
+        ResearchRecord record,
+        CancellationToken cancellationToken)
+    {
+        if (record.Notes.Count > 0)
         {
-            Id = record.Id,
-            AuthId = record.AuthId,
-            Name = record.Name,
-            Status = ToStatusString(record.Status),
-            RiskLevel = ToRiskLevelString(record.RiskLevel),
-            InputMethod = ToInputMethodString(record.InputMethod),
-            Car = record.Car is null ? null : ToCarDocument(record.Car),
-            Description = record.Description,
-            DescriptionSource = ToDescriptionSourceString(record.DescriptionSource),
-            InitialPrompt = record.InitialPrompt,
-            CreditsSpent = record.CreditsSpent,
-            IsNameManual = record.IsNameManual,
-            CreatedAt = record.CreatedAt.UtcDateTime,
-            UpdatedAt = record.UpdatedAt.UtcDateTime
-        };
+            await notesCollection.InsertManyAsync(
+                session,
+                record.Notes.Select(n => NoteMapper.ToDocument(n, record.Id, record.AuthId)),
+                cancellationToken: cancellationToken);
+        }
 
-    private static ResearchRecord ToDomain(ResearchDocument document) =>
-        new()
+        if (record.Details.Count > 0)
         {
-            Id = document.Id,
-            AuthId = document.AuthId,
-            Name = document.Name,
-            Status = ParseStatus(document.Status),
-            RiskLevel = ParseRiskLevel(document.RiskLevel),
-            InputMethod = ParseInputMethod(document.InputMethod),
-            Car = document.Car is null ? null : ToCarDomain(document.Car),
-            Description = document.Description,
-            DescriptionSource = ParseDescriptionSource(document.DescriptionSource),
-            InitialPrompt = document.InitialPrompt,
-            CreditsSpent = document.CreditsSpent,
-            IsNameManual = document.IsNameManual,
-            CreatedAt = new DateTimeOffset(document.CreatedAt, TimeSpan.Zero),
-            UpdatedAt = new DateTimeOffset(document.UpdatedAt, TimeSpan.Zero)
-        };
+            await detailsCollection.InsertManyAsync(
+                session,
+                record.Details.Select(d => DetailMapper.ToDocument(d, record.Id, record.AuthId)),
+                cancellationToken: cancellationToken);
+        }
 
-    private static CarDataDocument ToCarDocument(CarData car) =>
-        new()
+        if (record.Files.Count > 0)
         {
-            Make = car.Make,
-            Model = car.Model,
-            Year = car.Year,
-            MileageKm = car.MileageKm,
-            Price = car.Price,
-            Currency = car.Currency,
-            Vin = car.Vin,
-            FuelType = car.FuelType,
-            Transmission = car.Transmission,
-            EngineDisplacement = car.EngineDisplacement,
-            Color = car.Color,
-            Condition = car.Condition
-        };
+            await filesCollection.InsertManyAsync(
+                session,
+                record.Files.Select(f => AttachedFileMapper.ToDocument(f, record.Id, record.AuthId)),
+                cancellationToken: cancellationToken);
+        }
 
-    private static CarData ToCarDomain(CarDataDocument document) =>
-        new()
+        if (record.Questions.Count > 0)
         {
-            Make = document.Make,
-            Model = document.Model,
-            Year = document.Year,
-            MileageKm = document.MileageKm,
-            Price = document.Price,
-            Currency = document.Currency,
-            Vin = document.Vin,
-            FuelType = document.FuelType,
-            Transmission = document.Transmission,
-            EngineDisplacement = document.EngineDisplacement,
-            Color = document.Color,
-            Condition = document.Condition
-        };
+            await questionsCollection.InsertManyAsync(
+                session,
+                record.Questions.Select(q => QuestionMapper.ToDocument(q, record.Id, record.AuthId)),
+                cancellationToken: cancellationToken);
+        }
 
-    private static string ToInputMethodString(InputMethod inputMethod) => inputMethod switch
-    {
-        InputMethod.Form => "form",
-        InputMethod.Text => "text",
-        _ => throw new ArgumentOutOfRangeException(nameof(inputMethod), inputMethod, null)
-    };
-
-    private static InputMethod ParseInputMethod(string value) => value switch
-    {
-        "form" => InputMethod.Form,
-        "text" or "paste" => InputMethod.Text,
-        _ => InputMethod.Form
-    };
-
-    private static string ToStatusString(ResearchStatus status) => status switch
-    {
-        ResearchStatus.Draft => "draft",
-        ResearchStatus.Pending => "pending",
-        ResearchStatus.Analyzing => "analyzing",
-        ResearchStatus.Analyzed => "analyzed",
-        ResearchStatus.Failed => "failed",
-        _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
-    };
-
-    private static ResearchStatus ParseStatus(string? value) => value switch
-    {
-        null or "draft" => ResearchStatus.Draft,
-        "pending" => ResearchStatus.Pending,
-        "analyzing" => ResearchStatus.Analyzing,
-        "analyzed" => ResearchStatus.Analyzed,
-        "failed" => ResearchStatus.Failed,
-        _ => ResearchStatus.Draft
-    };
-
-    private static string? ToRiskLevelString(RiskLevel? riskLevel) => riskLevel switch
-    {
-        null => null,
-        RiskLevel.Low => "low",
-        RiskLevel.Medium => "medium",
-        RiskLevel.High => "high",
-        _ => throw new ArgumentOutOfRangeException(nameof(riskLevel), riskLevel, null)
-    };
-
-    private static RiskLevel? ParseRiskLevel(string? value) => value switch
-    {
-        null => null,
-        "low" => RiskLevel.Low,
-        "medium" => RiskLevel.Medium,
-        "high" => RiskLevel.High,
-        _ => null
-    };
-
-    private static string? ToDescriptionSourceString(DescriptionSource? descriptionSource) =>
-        descriptionSource switch
+        if (record.Badges.Count > 0)
         {
-            null => null,
-            DescriptionSource.AiGeneratedFromText => "aiGeneratedFromText",
-            _ => throw new ArgumentOutOfRangeException(nameof(descriptionSource), descriptionSource, null)
-        };
+            await badgesCollection.InsertManyAsync(
+                session,
+                record.Badges.Select(b => BadgeMapper.ToDocument(b, record.Id, record.AuthId)),
+                cancellationToken: cancellationToken);
+        }
+    }
 
-    private static DescriptionSource? ParseDescriptionSource(string? value) => value switch
+    private async Task DeleteChildDocumentsAsync(
+        IClientSessionHandle session,
+        Guid researchId,
+        string authId,
+        CancellationToken cancellationToken)
     {
-        null => null,
-        "aiGeneratedFromText" => DescriptionSource.AiGeneratedFromText,
-        _ => null
-    };
+        await notesCollection.DeleteManyAsync(
+            session,
+            ResearchChildFilters.Notes(researchId, authId),
+            cancellationToken: cancellationToken);
+        await detailsCollection.DeleteManyAsync(
+            session,
+            ResearchChildFilters.Details(researchId, authId),
+            cancellationToken: cancellationToken);
+        await filesCollection.DeleteManyAsync(
+            session,
+            ResearchChildFilters.Files(researchId, authId),
+            cancellationToken: cancellationToken);
+        await questionsCollection.DeleteManyAsync(
+            session,
+            ResearchChildFilters.Questions(researchId, authId),
+            cancellationToken: cancellationToken);
+        await badgesCollection.DeleteManyAsync(
+            session,
+            ResearchChildFilters.Badges(researchId, authId),
+            cancellationToken: cancellationToken);
+    }
 }
